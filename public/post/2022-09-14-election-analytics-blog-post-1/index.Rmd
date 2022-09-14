@@ -1,0 +1,10 @@
+---
+title: 'Election Analytics: Blog Post 1'
+author: Meredith Zielonka
+date: '2022-09-14'
+slug: []
+categories: []
+tags: []
+---
+
+Introduction
