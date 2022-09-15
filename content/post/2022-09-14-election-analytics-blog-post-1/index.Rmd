@@ -7,7 +7,7 @@ categories: []
 tags: []
 ---
 
-```{r}
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(usmap)
@@ -22,7 +22,7 @@ require(sf)
 
 
 
-```{r}
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
 ## 1. create a map of Republican/Democrat voteshare margin by state in a year of your choice (2016)
 house_party_vote_share_by_district_1948_2020 <- read_csv("house party vote share by district 1948-2020.csv")
 h <- house_party_vote_share_by_district_1948_2020
@@ -53,7 +53,7 @@ scale_fill_gradient2(low = "#0033FF", mid = "white", high = "#CC3333", name = "T
 ```
 
 
-```{r}
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
 ## 2. create a map of Republican/Democrat voteshare margin by state and congressional district in 2014
 
 # Start with 114th congress - 2014 election
@@ -99,8 +99,10 @@ cd114 <- ms_simplify(cd114)
 ggplot() +
   geom_sf(data =cd114,aes(fill = votemargin),
           inherit.aes = FALSE, alpha = 0.9) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits = c(-100, 100), name = "2014 Voteshare Margin by District and State") +
-  theme_void() + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits = c(-100, 100)) +
+  theme_void() + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) + labs(
+              title = "The 2014 Election Vote Share by District and State",
+              subtitle = "Red represents a larger share for Republicans and blue for Democrats") +
 theme(axis.title.x=element_blank(),
       axis.text.x=element_blank(),
       axis.ticks.x=element_blank(),
@@ -108,12 +110,10 @@ theme(axis.title.x=element_blank(),
       axis.text.y=element_blank(),
       axis.ticks.y=element_blank())
 ```
-```{r}
-theme_mer <- function(theme_538 %+replace% 
-                        axis.text = element_text(face = "bold", color = "grey", size = base_size),
-      axis.title = element_text(face = "bold", size = rel(1.33)),)
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+# create a custom theme
+theme_mer <- function(axis.title = element_text(face = "bold", color = "blue")) {
+  theme_fivethirtyeight(base_size = base_size, base_family = base_family) %+replace%
+    theme( theme_fivethirtyeight)
+}
 ```
-
-
-3. label each state (e.g. AZ) in your map and
-4. create a custom ggplot2 theme for your blog.
