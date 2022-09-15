@@ -7,4 +7,112 @@ categories: []
 tags: []
 ---
 
-Introduction
+```{r}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(usmap)
+library(rmapshaper)
+
+require(tidyverse)
+require(ggplot2)
+require(sf)
+```
+
+
+
+```{r}
+## 1. create a map of Republican/Democrat voteshare margin by state in a year of your choice (2016)
+house_party_vote_share_by_district_1948_2020 <- read_csv("house party vote share by district 1948-2020.csv")
+h <- house_party_vote_share_by_district_1948_2020
+
+# filter for relevant variables
+housevote2016 <- h %>%
+filter(raceYear == 2016) %>%
+select(raceYear, State, district_num, district_id, RepVotes, DemVotes, R_vote_margin) %>%
+# summarize party vote share by state
+group_by(State) %>%
+  
+  mutate(R_votemargin_st = (sum(RepVotes))/
+           sum(RepVotes + DemVotes),
+         D_votemargin_st = (sum(DemVotes))/
+           sum(RepVotes + DemVotes),
+         votemargin = R_votemargin_st - D_votemargin_st) %>%
+rename(state = State)
+
+# install.packages('plot_usmap')
+states_map <- usmap::us_map()
+unique(states_map$abbr)
+
+# plot
+plot_usmap(data = housevote2016, regions = "states", labels = TRUE,  values = "votemargin") +
+scale_fill_gradient2(low = "#0033FF", mid = "white", high = "#CC3333", name = "Two-Party Voteshare Margin", limits = c(-1, 1), labs(
+    title = "The 2016 Election Vote Share",
+    subtitle = "Red represents a larger share for Republicans and blue for Democrats")) +
+theme_void()
+```
+
+
+```{r}
+## 2. create a map of Republican/Democrat voteshare margin by state and congressional district in 2014
+
+# Start with 114th congress - 2014 election
+get_congress_map <- function(cong=114) {
+tmp_file <- tempfile()
+tmp_dir <- tempdir()
+zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+download.file(zp, tmp_file)
+unzip(zipfile = tmp_file, exdir = tmp_dir)
+fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+st_read(fpath)
+}
+cd114 <- get_congress_map(114)
+
+housevote2014 <- h %>%
+filter(raceYear == 2014) %>%
+select(raceYear, State, district_num, state_abb, RepVotesMajorPercent, DemVotesMajorPercent, R_vote_margin) %>%
+
+# Summarize party vote share by state
+group_by(district_num, State) %>%
+  summarise(reppercent = RepVotesMajorPercent,
+            dempercent = DemVotesMajorPercent) %>%
+  
+  mutate(votemargin = reppercent - dempercent) %>%
+  
+# Rename to match shapefile
+  rename(DISTRICT = district_num, STATENAME = State)
+
+# before joining dfs, check classes of variable to be merged on
+class(housevote2014$DISTRICT)
+class(housevote2014$STATENAME)
+class(cd114$DISTRICT)
+# change class
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+# join election returns with shapefiles
+cd114 <- cd114 %>% left_join(housevote2014, by=c("DISTRICT", "STATENAME"))
+
+# Simplify
+cd114 <- ms_simplify(cd114)
+
+# Plot
+
+ggplot() +
+  geom_sf(data =cd114,aes(fill = votemargin),
+          inherit.aes = FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits = c(-100, 100), name = "2014 Voteshare Margin by District and State") +
+  theme_void() +
+theme(axis.title.x=element_blank(),
+      axis.text.x=element_blank(),
+      axis.ticks.x=element_blank(),
+      axis.title.y=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+```
+```{r}
+theme_mer <- function(theme_538 %+replace% 
+                        axis.text = element_text(face = "bold", color = "grey", size = base_size),
+      axis.title = element_text(face = "bold", size = rel(1.33)),)
+```
+
+
+3. label each state (e.g. AZ) in your map and
+4. create a custom ggplot2 theme for your blog.
