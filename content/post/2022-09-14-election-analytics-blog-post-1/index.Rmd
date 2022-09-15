@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(usmap)
 library(rmapshaper)
+library(blogdown)
+library(ggthemes)
 
 require(tidyverse)
 require(ggplot2)
@@ -45,10 +47,9 @@ unique(states_map$abbr)
 
 # plot
 plot_usmap(data = housevote2016, regions = "states", labels = TRUE,  values = "votemargin") +
-scale_fill_gradient2(low = "#0033FF", mid = "white", high = "#CC3333", name = "Two-Party Voteshare Margin", limits = c(-1, 1), labs(
-    title = "The 2016 Election Vote Share",
-    subtitle = "Red represents a larger share for Republicans and blue for Democrats")) +
-theme_void()
+scale_fill_gradient2(low = "#0033FF", mid = "white", high = "#CC3333", name = "Two-Party Voteshare Margin", limits = c(-1, 1)) + labs(
+              title = "The 2016 Election Vote Share",
+              subtitle = "Red represents a larger share for Republicans and blue for Democrats")
 ```
 
 
@@ -99,7 +100,7 @@ ggplot() +
   geom_sf(data =cd114,aes(fill = votemargin),
           inherit.aes = FALSE, alpha = 0.9) +
   scale_fill_gradient2(low = "blue", mid = "white", high = "red", limits = c(-100, 100), name = "2014 Voteshare Margin by District and State") +
-  theme_void() +
+  theme_void() + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
 theme(axis.title.x=element_blank(),
       axis.text.x=element_blank(),
       axis.ticks.x=element_blank(),
