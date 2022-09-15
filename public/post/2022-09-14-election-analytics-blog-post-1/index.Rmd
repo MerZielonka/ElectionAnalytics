@@ -61,7 +61,6 @@ scale_fill_gradient2(low = "#0033FF", mid = "white", high = "#CC3333", name = "T
               title = "The 2016 Election Vote Share",
               subtitle = "Red represents a larger share for Republicans and blue for Democrats")
 ```
-This second map adds a layer of nuance, given the differentiation between congressional districts. This allows us to see that even on a district level, there are some but not many districts that overwhelmingly favor one party's candidate. However, the districts with lower voteshare margins gave Republicans control of the House in 2014. This map also suggests that Democrats find their power in concentrated pockets, whereas Republicans are more sparse and have a smaller margin in more districts, convincing rural voters to side with them. If these patterns continue, this could inform national Democratic campaign strategy on how to most effectively target less secure seats and what voting population to turn the appeal towards.
 
 ```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
 ## 2. create a map of Republican/Democrat voteshare margin by state and congressional district in 2014
@@ -108,6 +107,9 @@ theme(axis.title.x=element_blank(),
       axis.text.y=element_blank(),
       axis.ticks.y=element_blank())
 ```
+This second map adds a layer of nuance, given the differentiation between congressional districts. This allows us to see that even on a district level, there are some but not many districts that overwhelmingly favor one party's candidate. However, the districts with lower voteshare margins gave Republicans control of the House in 2014. This map also suggests that Democrats find their power in concentrated pockets, whereas Republicans are more sparse and have a smaller margin in more districts, convincing rural voters to side with them. If these patterns continue, this could inform national Democratic campaign strategy on how to most effectively target less secure seats and what voting population to turn the appeal towards.
+*All the data in this post came from the Election Analytics class repository, and all of the code behind these maps is stored in my personal Github repository.*
+
 ```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
 # create a custom theme
 theme_mer <- function(axis.title = element_text(face = "bold", color = "blue")) {
