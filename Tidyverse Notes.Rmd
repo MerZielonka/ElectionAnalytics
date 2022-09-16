@@ -1,0 +1,34 @@
+---
+title: "Tidyverse Notes"
+author: "Meredith Zielonka"
+date: "9/16/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+# command + shift + m for %>% 
+
+data %>%
+  group_by(year, party) %>% 
+  summarize(avg_poll_usa = mean(average_poll))
+  ungroup() %>% 
+  pivot_wider(names_from = "party", values_from = "avg_poll_usa") %>% 
+  # this takes one column with options and makes it the column headers, filling it with the values, *expanding number of columns
+  mutate(diff = democrat - republican) %>% 
+  # this creates a new column called diff with the coded calculation
+  pivot_longer(democrat:diff, names_to = "party", values_to = "avg_poll_diff") %>% 
+  # this decreases the number of columns, : indicates the range of columns that are being collapsed, if want to skip, use -c() and list cols to subtract
+    
+ #   %>% is a pipe meaning "next or then"
+    
+    ggplot(aes(x = year, y = avg_poll_diff, color = party)) + geom_line()
+  
+  left_join(polls_past_state, by = c("state", "year", "party")) %>% 
+  filter(is.na(average_poll))
+  
+```
+
