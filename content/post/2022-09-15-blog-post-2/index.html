@@ -41,31 +41,9 @@ tags: []
 <pre><code>## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## [1] -0.6874747</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ DSPIC_change_pct, 
-##     data = dat2)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -5.2002 -1.5572 -0.7778  2.5809  4.0432 
-## 
-## Coefficients:
-##                  Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)        53.917      1.121  48.118 4.93e-16 ***
-## DSPIC_change_pct   -4.502      1.319  -3.413  0.00462 ** 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.185 on 13 degrees of freedom
-## Multiple R-squared:  0.4726, Adjusted R-squared:  0.4321 
-## F-statistic: 11.65 on 1 and 13 DF,  p-value: 0.004623</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<pre><code>## [1] 0.4726214</code></pre>
 <p>This scatterplot at first glance seems to have a correlation. Most of the midterm values fall within the upper and lower bounds of the regression line on a negative tilt. The regression line of incumbent popular vote share and RDI yielded a correlation of -0.6874747 and an r-squared of 0.4726214. This is an mediocre correlation and a mediocre r-squared. It indicates that there is some correlation, but it isn’t necessarily strong enough to make accurate predictions.</p>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<pre><code>## [1] 2.965358</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-4.png" width="672" /></p>
 <p>This graph plots the difference between the observed value and predicted value of party vote share and confirms our previous findings. Some of our predicted values, like 1970, 1994, 1998, and 2002, are close to the true value, but the majority are further away. The mean-squared error, a number summarizing the error, should be close to 1 in an accurate model. In this case, it is 2.965358, indicating once again that this model is mediocre.</p>
 <p>Now, let us turn to the seat share graphs.</p>
 <p><strong>Seat Share</strong></p>
@@ -90,30 +68,9 @@ tags: []
 <pre><code>## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre><code>## [1] -0.633019</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_seat_share ~ DSPIC_change_pct, data = dat3)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -44.166 -18.148  -7.032  26.927  43.150 
-## 
-## Coefficients:
-##                  Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)       256.085      9.731  26.316 1.16e-12 ***
-## DSPIC_change_pct  -33.773     11.455  -2.948   0.0113 *  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 27.66 on 13 degrees of freedom
-## Multiple R-squared:  0.4007, Adjusted R-squared:  0.3546 
-## F-statistic: 8.692 on 1 and 13 DF,  p-value: 0.01131</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
-<pre><code>## [1] 0.4007131</code></pre>
 <p>Compared to the Vote Share, the Seat Share graph seems to have less of a correlation. About half of the values fall within the upper and lower bounds, but half do not. This data has a correlation of -0.633019 and the regression has an r-squared of 0.4007131. Despite the visual dissimilarities, these values are actually quite similar, suggesting that there is little difference in economic correlation between popular vote and seat share.</p>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
-<pre><code>## [1] 25.75257</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-2.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-3.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-4.png" width="672" /></p>
 <p>The plot between true and predicted value for seat share looks similar to the plot for popular vote, with predictions being largely inaccurate except for a few values. The mean-squared error in the case of seat share is drastically large at 25.75257, particularly compared to the case of vote share. The reasons for this are ripe for exploration in further posts.</p>
 </div>
 <div id="conclusion" class="section level1">
