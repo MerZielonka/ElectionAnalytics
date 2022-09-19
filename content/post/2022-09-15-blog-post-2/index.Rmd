@@ -6,4 +6,298 @@ slug: []
 categories: []
 tags: []
 ---
-Hello World part 2 is here
+Today's Question: *Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?*
+
+Steps: 
+1) code scatterplots for popvote and do regression
+2) evaluate regression quality
+3) code scatterplots for seat share and do regression
+4) evaluate regression quality
+5) compare
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse); library(car)
+```
+
+**Popular Vote**
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+# load data and merge
+library(readr)
+popvote_df <- read_csv('house_popvote_seats.csv') 
+economy_df <- read_csv('GDP_quarterly.csv')
+dat <- left_join(economy_df, popvote_df, by = 'year')
+
+# drop NAs (only election years)
+dat <- dat %>%
+  drop_na()
+
+# new df
+dat2 <- dat %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 
+           'H_incumbent_party_majorvote_pct', 
+           'quarter_cycle', 'GDP_growth_pct') %>%
+    filter(quarter_cycle == 8)  
+
+# graph results
+dat2 %>%
+  ggplot(aes(x=GDP_growth_pct, y=H_incumbent_party_majorvote_pct,
+             label=year)) + 
+    geom_text() +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q8-Q7 GDP growth") +
+    ylab("Incumbent party PV") +
+    theme_bw() +
+    theme(
+      axis.text = element_text(size = 10)
+    )
+# correlation
+cor(dat2$GDP_growth_pct, dat2$H_incumbent_party_majorvote_pct)
+
+lm_econ <- lm(H_incumbent_party_majorvote_pct ~ GDP_growth_pct, data = dat2)
+summary(lm_econ)
+
+# GDP graph with fit
+dat2 %>%
+  ggplot(aes(x=GDP_growth_pct, y=H_incumbent_party_majorvote_pct,
+             label=year)) + 
+    geom_text(size = 8) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q8-Q7 GDP growth (X)") +
+    ylab("Incumbent party PV (Y)") +
+    theme_bw() +
+    ggtitle("Correlation Fit Line") + 
+    theme(axis.text = element_text(size = 20),
+          axis.title = element_text(size = 24),
+          plot.title = element_text(size = 32))
+```
+
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+summary(lm_econ)$r.squared
+```
+This is an extremely low rsquared and a low correlation
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+plot(dat2$year, dat2$H_incumbent_party_majorvote_pct, 
+     type="l",
+     main="true Y (line), predicted Y (dot) for each year")
+points(dat2$year, predict(lm_econ, dat2))
+
+hist(lm_econ$model$H_incumbent_party_majorvote_pct - 
+       lm_econ$fitted.values, 
+     main="histogram of true Y - predicted Y")
+```
+These plots the difference between the observed value and predicted value.
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+mse_g <- mean((lm_econ$model$H_incumbent_party_majorvote_pct -
+                 lm_econ$fitted.values)^2)
+
+sqrt(mse_g)
+```
+
+This summarizes the error into a single number, the mean-squared error
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+outsamp_mod1 <- lm(H_incumbent_party_majorvote_pct ~ GDP_growth_pct, 
+                    dat2[dat2$year != 2018,])
+outsamp_pred <- predict(outsamp_mod1, 
+                        dat2[dat2$year == 2018,])
+outsamp_true <- dat2$H_incumbent_party_majorvote_pct[dat2$year == 2018] 
+
+outsamp_pred - outsamp_true
+```
+
+Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 6.68% off.
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+years_outsamp <- sample(dat2$year, 8)
+outsamp_mod <- lm(H_incumbent_party_majorvote_pct ~ 
+                    GDP_growth_pct,
+                  dat2[!(dat2$year %in% years_outsamp),])
+outsamp_pred <- predict(outsamp_mod,
+                newdata = dat2[dat2$year %in% years_outsamp,])
+outsamp_true <- dat2$H_incumbent_party_majorvote_pct[dat2$year 
+                                                     %in% years_outsamp]
+mean(outsamp_pred - outsamp_true)
+```
+
+Cross-validation
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+outsamp_errors <- sapply(1:1000, function(i){
+    years_outsamp <- sample(dat2$year, 8)
+  outsamp_mod <- lm(H_incumbent_party_majorvote_pct ~ 
+                      GDP_growth_pct,
+                  dat2[!(dat2$year %in% years_outsamp),])
+  outsamp_pred <- predict(outsamp_mod,
+                newdata = dat2[dat2$year %in% years_outsamp,])
+  outsamp_true <- dat2$H_incumbent_party_majorvote_pct[dat2$year 
+                                                       %in% years_outsamp]
+  mean(outsamp_pred - outsamp_true)
+})
+
+hist(outsamp_errors,
+     xlab = "",
+     main = "mean out-of-sample residual\n(1000 runs of cross-validation)")
+
+mean(abs(outsamp_errors))
+```
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+GDP_new <- economy_df %>%
+    subset(year == 2020 & quarter_cycle == 8) %>%
+    select(GDP_growth_pct)
+
+predict(lm_econ, GDP_new)
+predict(lm_econ, GDP_new, interval="prediction")
+```
+
+**Seat Share**
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+# load data and merge
+library(readr)
+popvote_df <- read_csv('house_popvote_seats.csv') 
+economy_df <- read_csv('GDP_quarterly.csv')
+dat <- left_join(economy_df, popvote_df, by = 'year')
+
+# drop NAs (only election years)
+dat <- dat %>%
+  drop_na()
+
+# new df
+dat3 <- dat %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 
+           'R_seats', 'D_seats', 
+           'quarter_cycle', 'GDP_growth_pct') %>%
+    filter(quarter_cycle == 8)  
+
+dat3 <- dat3 %>% 
+    mutate(H_incumbent_seat_share = case_when(
+    endsWith(H_incumbent_party, "R") ~ R_seats,
+    endsWith(H_incumbent_party, "D") ~ D_seats
+    ))
+
+# graph results
+dat3 %>%
+  ggplot(aes(x=GDP_growth_pct, y=H_incumbent_seat_share,
+             label=year)) + 
+    geom_text() +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q8-Q7 GDP growth") +
+    ylab("Incumbent Party Seat Share") +
+    theme_bw() +
+    theme(
+      axis.text = element_text(size = 10)
+    )
+# correlation
+cor(dat3$GDP_growth_pct, dat3$H_incumbent_seat_share)
+
+lm_econseats <- lm(H_incumbent_seat_share ~ GDP_growth_pct, data = dat3)
+summary(lm_econseats)
+
+# GDP graph with fit
+dat3 %>%
+  ggplot(aes(x=GDP_growth_pct, y=H_incumbent_seat_share,
+             label=year)) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q8-Q7 GDP growth (X)") +
+    ylab("Incumbent Party Seat Share (Y)") +
+    theme_bw() +
+    ggtitle("Correlation Fit Line") + 
+    theme(axis.text = element_text(size = 14),
+          axis.title = element_text(size = 16),
+          plot.title = element_text(size = 22))
+```
+
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+summary(lm_econseats)$r.squared
+```
+This is an extremely low rsquared and a low correlation
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+plot(dat3$year, dat3$H_incumbent_seat_share, 
+     type="l",
+     main="true Y (line), predicted Y (dot) for each year")
+points(dat3$year, predict(lm_econseats, dat3))
+
+hist(lm_econseats$model$H_incumbent_seat_share - 
+       lm_econseats$fitted.values, 
+     main="histogram of true Y - predicted Y")
+```
+These plots the difference between the observed value and predicted value.
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+mse_gseat <- mean((lm_econseats$model$H_incumbent_seat_share -
+                 lm_econseats$fitted.values)^2)
+
+sqrt(mse_g)
+```
+
+This summarizes the error into a single number, the mean-squared error
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+seatoutsamp_mod1 <- lm(H_incumbent_seat_share ~ GDP_growth_pct, 
+                    dat3[dat3$year != 2018,])
+seatoutsamp_pred <- predict(seatoutsamp_mod1, 
+                        dat3[dat3$year == 2018,])
+seatoutsamp_true <- dat3$H_incumbent_seat_share[dat3$year == 2018] 
+
+seatoutsamp_pred - seatoutsamp_true
+```
+
+Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 6.68% off.
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+years_outsamp <- sample(dat3$year, 8)
+seatoutsamp_mod <- lm(H_incumbent_seat_share ~ 
+                    GDP_growth_pct,
+                  dat3[!(dat3$year %in% years_outsamp),])
+seatoutsamp_pred1 <- predict(seatoutsamp_mod,
+                newdata = dat3[dat3$year %in% years_outsamp,])
+seatoutsamp_true1 <- dat3$H_incumbent_seat_share[dat3$year 
+                                                     %in%
+                                                   years_outsamp]
+mean(seatoutsamp_pred1 - seatoutsamp_true1)
+```
+
+Cross-validation
+
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+seatoutsamp_errors <- sapply(1:1000, function(i){
+    years_outsamp <- sample(dat3$year, 8)
+  seatoutsamp_mod2 <- lm(H_incumbent_seat_share ~ 
+                      GDP_growth_pct,
+                  dat3[!(dat3$year %in% years_outsamp),])
+  seatoutsamp_pred2 <- predict(seatoutsamp_mod2,
+                newdata = dat3[dat3$year %in% years_outsamp,])
+  seatoutsamp_true2 <- dat3$H_incumbent_seat_share[dat3$year 
+                                                       %in% years_outsamp]
+  mean(seatoutsamp_pred2 - seatoutsamp_true2)
+})
+
+hist(seatoutsamp_errors,
+     xlab = "",
+     main = "mean out-of-sample residual\n(1000 runs of cross-validation)")
+
+mean(abs(outsamp_errors))
+```
+```{r, echo = FALSE, results = 'hide',fig.keep = 'all', message = FALSE}
+GDP_newseats <- economy_df %>%
+    subset(year == 2020 & quarter_cycle == 8) %>%
+    select(GDP_growth_pct)
+
+predict(lm_econseats, GDP_newseats)
+predict(lm_econseats, GDP_newseats, interval="prediction")
+
+```
