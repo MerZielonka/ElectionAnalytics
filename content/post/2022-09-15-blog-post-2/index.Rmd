@@ -20,8 +20,10 @@ When choosing an economic independent variable, GDP (Gross Domestic Product, or 
 
 To begin my analysis, I coded scatterplots with vote share and seat share as dependent variables and RDI as the independent variable. I focused specifically on midterm election years. I fit regression lines to each model and finally ran tests to evaluate their quality.
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, results=FALSE, message = FALSE, warning = FALSE, echo = FALSE}
+# Hide all code output
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
 library(tidyverse); library(car)
 library(blogdown)
 ```
