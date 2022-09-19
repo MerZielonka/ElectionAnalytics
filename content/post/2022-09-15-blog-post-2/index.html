@@ -1,0 +1,141 @@
+---
+title: Blog Post 2
+author: Meredith Zielonka
+date: '2022-09-15'
+slug: []
+categories: []
+tags: []
+---
+
+
+
+<p>Today’s Question: <em>Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?</em></p>
+<p>Steps:
+1) code scatterplots for popvote and do regression
+2) evaluate regression quality
+3) code scatterplots for seat share and do regression
+4) evaluate regression quality
+5) compare</p>
+<p><strong>Popular Vote</strong></p>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## Rows: 37 Columns: 21</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (4): AreaAll, winner_party, president_party, H_incumbent_party
+## dbl (16): ...1, year, R_seats, D_seats, Other_seats, total_votes, R_votes, D...
+## lgl  (1): H_incumbent_party_winner</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## Rows: 302 Columns: 10</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (2): date, year_qt
+## dbl (8): ...1, ...2, GDPC1, quarter_yr, quarter_cycle, year, GDP_growth_qt, ...</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre><code>## [1] -0.2565249</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ GDP_growth_pct, 
+##     data = dat2)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -6.2103 -3.6610  0.6801  3.2271  5.9406 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      52.213      1.151  45.362   &lt;2e-16 ***
+## GDP_growth_pct   -1.074      1.011  -1.062    0.304    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.946 on 16 degrees of freedom
+## Multiple R-squared:  0.0658, Adjusted R-squared:  0.007418 
+## F-statistic: 1.127 on 1 and 16 DF,  p-value: 0.3042</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre><code>## [1] 0.065805</code></pre>
+<p>This is an extremely low rsquared and a low correlation</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-2.png" width="672" />
+These plots the difference between the observed value and predicted value.</p>
+<pre><code>## [1] 3.720082</code></pre>
+<p>This summarizes the error into a single number, the mean-squared error</p>
+<pre><code>##       1 
+## 6.62964</code></pre>
+<p>Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 6.68% off.</p>
+<pre><code>## [1] 0.2541748</code></pre>
+<p>Cross-validation</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre><code>## [1] 1.584403</code></pre>
+<pre><code>##        1 
+## 50.64485</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 50.64485 41.88583 59.40387</code></pre>
+<p><strong>Seat Share</strong></p>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## Rows: 37 Columns: 21</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr  (4): AreaAll, winner_party, president_party, H_incumbent_party
+## dbl (16): ...1, year, R_seats, D_seats, Other_seats, total_votes, R_votes, D...
+## lgl  (1): H_incumbent_party_winner</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## Rows: 302 Columns: 10</code></pre>
+<pre><code>## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (2): date, year_qt
+## dbl (8): ...1, ...2, GDPC1, quarter_yr, quarter_cycle, year, GDP_growth_qt, ...</code></pre>
+<pre><code>## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre><code>## [1] -0.1804278</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_seat_share ~ GDP_growth_pct, data = dat3)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -72.764 -14.542   0.509  16.428  52.252 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)     244.340      5.985  40.829   &lt;2e-16 ***
+## GDP_growth_pct   -5.153      4.749  -1.085    0.285    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 29.85 on 35 degrees of freedom
+## Multiple R-squared:  0.03255,    Adjusted R-squared:  0.004913 
+## F-statistic: 1.178 on 1 and 35 DF,  p-value: 0.2852</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
+<pre><code>## [1] 0.03255419</code></pre>
+<p>This is an extremely low rsquared and a low correlation</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-2.png" width="672" />
+These plots the difference between the observed value and predicted value.</p>
+<pre><code>## [1] 3.720082</code></pre>
+<p>This summarizes the error into a single number, the mean-squared error</p>
+<pre><code>##        1 
+## 45.04155</code></pre>
+<p>Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 45.68 seats off.</p>
+<pre><code>## [1] -17.61335</code></pre>
+<p>Cross-validation</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre><code>## [1] 1.584403</code></pre>
+<pre><code>##        1 
+## 236.8132</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 236.8132 174.9972 298.6292</code></pre>

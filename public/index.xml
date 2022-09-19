@@ -6,7 +6,17 @@
     <description>Recent content on Meredith Zielonka</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 14 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 15 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blog Post 2</title>
+      <link>http://example.org/post/2022-09-15-blog-post-2/</link>
+      <pubDate>Thu, 15 Sep 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-09-15-blog-post-2/</guid>
+      <description>Today’s Question: Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?
+Steps: 1) code scatterplots for popvote and do regression 2) evaluate regression quality 3) code scatterplots for seat share and do regression 4) evaluate regression quality 5) compare</description>
+    </item>
+    
     <item>
       <title>Election Analytics: Blog Post 1</title>
       <link>http://example.org/post/2022-09-14-election-analytics-blog-post-1/</link>
