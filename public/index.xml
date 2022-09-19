@@ -13,8 +13,8 @@
       <pubDate>Thu, 15 Sep 2022 00:00:00 +0000</pubDate>
       
       <guid>http://example.org/post/2022-09-15-blog-post-2/</guid>
-      <description>Today’s Question: Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?
-Steps: 1) code scatterplots for popvote and do regression 2) evaluate regression quality 3) code scatterplots for seat share and do regression 4) evaluate regression quality 5) compare</description>
+      <description>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.
+Introduction This week in Election Analytics, we are talking about the economy. We are not the first to do this. It has long been theorized that the economy has an tremendous impact on election results, to the point that some predictors, like Yale professor Ray Fair, rely solely on economic variables in developing their models.</description>
     </item>
     
     <item>

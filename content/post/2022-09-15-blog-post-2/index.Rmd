@@ -1,5 +1,5 @@
 ---
-title: Post 2: The Economy
+title: Blog Post 2
 author: Meredith Zielonka
 date: '2022-09-15'
 slug: []
@@ -7,15 +7,6 @@ categories: []
 tags: []
 ---
 *This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
-
-Today's Question: *Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?*
-
-Steps: 
-1) code scatterplots for popvote and do regression
-2) evaluate regression quality
-3) code scatterplots for seat share and do regression
-4) evaluate regression quality
-5) compare
 
 # Introduction
 
@@ -178,5 +169,4 @@ The plot between true and predicted value for seat share looks similar to the pl
 
 # Conclusion
 
-
-
+There is some correlation between RDI and both vote share and seat share, however in both cases it is simply mediocre and not a good sole basis for prediction for midterm outcomes. The impact of the effect on popular vote versus seat share does not vary too much, however the MSE is drastically large for seat share, suggesting that vote share is a more reliable dependent variable. When investigating whether the predictive power of the economy changes over time, the answer is largely no. The incumbent party has lost vote share and seat share over time, indicating greater volatility in politics, but the inaccuracy of the predictions has remained. In the future, RDI could be a useful metric as long as it is combined with other factors, both economic and non economic.

@@ -64,13 +64,16 @@
 		
 
 
-<p>Today’s Question: <em>Can we predict midterm election outcomes using only the state of the economy? Does the effect of the economy vary when we consider popular vote versus seat share as our outcome (dependent) variable? Does the predictive power of economy change across time? If so, why?</em></p>
-<p>Steps:
-1) code scatterplots for popvote and do regression
-2) evaluate regression quality
-3) code scatterplots for seat share and do regression
-4) evaluate regression quality
-5) compare</p>
+<p><em>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.</em></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This week in Election Analytics, we are talking about the economy. We are not the first to do this. It has long been theorized that the economy has an tremendous impact on election results, to the point that some predictors, like Yale professor <a href="https://fairmodel.econ.yale.edu/vote2020/indexne2.htm">Ray Fair</a>, rely solely on economic variables in developing their models.</p>
+<p>Based on this history of economic predictions, my primary question this week is to what extent the economy impacts midterm election outcomes and how effective economy-based predictions are. I have decided to focus specifically on whether the economic effect varies when looking at popular vote versus seat share and how this effect changes over time.</p>
+<p>When choosing an economic independent variable, GDP (Gross Domestic Product, or the inputs and outputs of an economy) and RDI (Real Disposable Income) were two options. I decided to use RDI because I felt that it more accurately portrayed the economic situation of the voters themselves versus the larger movement of the economy as a whole. In their <a href="https://onlinelibrary-wiley-com.ezp-prod1.hul.harvard.edu/doi/pdfdirect/10.1111/ajps.12053">paper on voter behavior, Healy and Lenz</a>, explore the influence of the economy on voters and ultimately find that, despite intending to base their vote on the incumbent’s entire term, voters only recall the most immediate economic past and the election-year economy influences their vote most. Based on this research, I decided to focus my analysis on the economic quarters immediately prior to the election.</p>
+</div>
+<div id="method" class="section level1">
+<h1>Method</h1>
+<p>To begin my analysis, I coded scatterplots with vote share and seat share as dependent variables and RDI as the independent variable. I focused specifically on midterm election years. I fit regression lines to each model and finally ran tests to evaluate their quality.</p>
 <p><strong>Popular Vote</strong></p>
 <pre><code>## New names:
 ## * `` -&gt; ...1</code></pre>
@@ -84,55 +87,42 @@
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre><code>## New names:
-## * `` -&gt; ...1
-## * ...1 -&gt; ...2</code></pre>
-<pre><code>## Rows: 302 Columns: 10</code></pre>
+## * `` -&gt; ...1</code></pre>
+<pre><code>## Rows: 254 Columns: 9</code></pre>
 <pre><code>## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (2): date, year_qt
-## dbl (8): ...1, ...2, GDPC1, quarter_yr, quarter_cycle, year, GDP_growth_qt, ...</code></pre>
+## dbl (7): ...1, year, quarter_yr, quarter_cycle, DSPIC_qt, DSPIC_change_qt, D...</code></pre>
 <pre><code>## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<pre><code>## [1] -0.2565249</code></pre>
+<pre><code>## [1] -0.6874747</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ GDP_growth_pct, 
+## lm(formula = H_incumbent_party_majorvote_pct ~ DSPIC_change_pct, 
 ##     data = dat2)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -6.2103 -3.6610  0.6801  3.2271  5.9406 
+## -5.2002 -1.5572 -0.7778  2.5809  4.0432 
 ## 
 ## Coefficients:
-##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)      52.213      1.151  45.362   &lt;2e-16 ***
-## GDP_growth_pct   -1.074      1.011  -1.062    0.304    
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        53.917      1.121  48.118 4.93e-16 ***
+## DSPIC_change_pct   -4.502      1.319  -3.413  0.00462 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 3.946 on 16 degrees of freedom
-## Multiple R-squared:  0.0658, Adjusted R-squared:  0.007418 
-## F-statistic: 1.127 on 1 and 16 DF,  p-value: 0.3042</code></pre>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
-<pre><code>## [1] 0.065805</code></pre>
-<p>This is an extremely low rsquared and a low correlation</p>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-3-2.png" width="672" />
-These plots the difference between the observed value and predicted value.</p>
-<pre><code>## [1] 3.720082</code></pre>
-<p>This summarizes the error into a single number, the mean-squared error</p>
-<pre><code>##       1 
-## 6.62964</code></pre>
-<p>Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 6.68% off.</p>
-<pre><code>## [1] 0.2541748</code></pre>
-<p>Cross-validation</p>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
-<pre><code>## [1] 1.584403</code></pre>
-<pre><code>##        1 
-## 50.64485</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 50.64485 41.88583 59.40387</code></pre>
+## Residual standard error: 3.185 on 13 degrees of freedom
+## Multiple R-squared:  0.4726, Adjusted R-squared:  0.4321 
+## F-statistic: 11.65 on 1 and 13 DF,  p-value: 0.004623</code></pre>
+<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre><code>## [1] 0.4726214</code></pre>
+<p>This scatterplot at first glance seems to have a correlation. Most of the midterm values fall within the upper and lower bounds of the regression line on a negative tilt. The regression line of incumbent popular vote share and RDI yielded a correlation of -0.6874747 and an r-squared of 0.4726214. This is an mediocre correlation and a mediocre r-squared. It indicates that there is some correlation, but it isn’t necessarily strong enough to make accurate predictions.</p>
+<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre><code>## [1] 2.965358</code></pre>
+<p>This graph plots the difference between the observed value and predicted value of party vote share and confirms our previous findings. Some of our predicted values, like 1970, 1994, 1998, and 2002, are close to the true value, but the majority are further away. The mean-squared error, a number summarizing the error, should be close to 1 in an accurate model. In this case, it is 2.965358, indicating once again that this model is mediocre.</p>
+<p>Now, let us turn to the seat share graphs.</p>
 <p><strong>Seat Share</strong></p>
 <pre><code>## New names:
 ## * `` -&gt; ...1</code></pre>
@@ -146,54 +136,45 @@ These plots the difference between the observed value and predicted value.</p>
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <pre><code>## New names:
-## * `` -&gt; ...1
-## * ...1 -&gt; ...2</code></pre>
-<pre><code>## Rows: 302 Columns: 10</code></pre>
+## * `` -&gt; ...1</code></pre>
+<pre><code>## Rows: 254 Columns: 9</code></pre>
 <pre><code>## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (2): date, year_qt
-## dbl (8): ...1, ...2, GDPC1, quarter_yr, quarter_cycle, year, GDP_growth_qt, ...</code></pre>
+## dbl (7): ...1, year, quarter_yr, quarter_cycle, DSPIC_qt, DSPIC_change_qt, D...</code></pre>
 <pre><code>## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-<pre><code>## [1] -0.1804278</code></pre>
+<pre><code>## [1] -0.633019</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = H_incumbent_seat_share ~ GDP_growth_pct, data = dat3)
+## lm(formula = H_incumbent_seat_share ~ DSPIC_change_pct, data = dat3)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -72.764 -14.542   0.509  16.428  52.252 
+## -44.166 -18.148  -7.032  26.927  43.150 
 ## 
 ## Coefficients:
-##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)     244.340      5.985  40.829   &lt;2e-16 ***
-## GDP_growth_pct   -5.153      4.749  -1.085    0.285    
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)       256.085      9.731  26.316 1.16e-12 ***
+## DSPIC_change_pct  -33.773     11.455  -2.948   0.0113 *  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 29.85 on 35 degrees of freedom
-## Multiple R-squared:  0.03255,    Adjusted R-squared:  0.004913 
-## F-statistic: 1.178 on 1 and 35 DF,  p-value: 0.2852</code></pre>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
-<pre><code>## [1] 0.03255419</code></pre>
-<p>This is an extremely low rsquared and a low correlation</p>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-11-1.png" width="672" /><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-11-2.png" width="672" />
-These plots the difference between the observed value and predicted value.</p>
-<pre><code>## [1] 3.720082</code></pre>
-<p>This summarizes the error into a single number, the mean-squared error</p>
-<pre><code>##        1 
-## 45.04155</code></pre>
-<p>Simulate out-of-sample prediction by withholding an observation before fitting and seeing how well the model predicts. Our prediction is 45.68 seats off.</p>
-<pre><code>## [1] -17.61335</code></pre>
-<p>Cross-validation</p>
-<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<pre><code>## [1] 1.584403</code></pre>
-<pre><code>##        1 
-## 236.8132</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 236.8132 174.9972 298.6292</code></pre>
+## Residual standard error: 27.66 on 13 degrees of freedom
+## Multiple R-squared:  0.4007, Adjusted R-squared:  0.3546 
+## F-statistic: 8.692 on 1 and 13 DF,  p-value: 0.01131</code></pre>
+<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre><code>## [1] 0.4007131</code></pre>
+<p>Compared to the Vote Share, the Seat Share graph seems to have less of a correlation. About half of the values fall within the upper and lower bounds, but half do not. This data has a correlation of -0.633019 and the regression has an r-squared of 0.4007131. Despite the visual dissimilarities, these values are actually quite similar, suggesting that there is little difference in economic correlation between popular vote and seat share.</p>
+<p><img src="http://example.org/post/2022-09-15-blog-post-2/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre><code>## [1] 25.75257</code></pre>
+<p>The plot between true and predicted value for seat share looks similar to the plot for popular vote, with predictions being largely inaccurate except for a few values. The mean-squared error in the case of seat share is drastically large at 25.75257, particularly compared to the case of vote share. The reasons for this are ripe for exploration in further posts.</p>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>There is some correlation between RDI and both vote share and seat share, however in both cases it is simply mediocre and not a good sole basis for prediction for midterm outcomes. The impact of the effect on popular vote versus seat share does not vary too much, however the MSE is drastically large for seat share, suggesting that vote share is a more reliable dependent variable. When investigating whether the predictive power of the economy changes over time, the answer is largely no. The incumbent party has lost vote share and seat share over time, indicating greater volatility in politics, but the inaccuracy of the predictions has remained. In the future, RDI could be a useful metric as long as it is combined with other factors, both economic and non economic.</p>
+</div>
 
 
 		
@@ -210,7 +191,7 @@ These plots the difference between the observed value and predicted value.</p>
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-19 10:02:15.812003 -0400 EDT m=&#43;0.282036365">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-19 14:26:13.423202 -0400 EDT m=&#43;0.307122354">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
