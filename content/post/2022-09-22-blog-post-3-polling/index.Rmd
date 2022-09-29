@@ -1,0 +1,192 @@
+---
+title: 'Blog Post 3: Polling'
+author: Meredith Zielonka
+date: '2022-09-22'
+slug: []
+categories: []
+tags: []
+---
+
+Question: using econ and polls to explain popular vote outcome.
+
+incumbent party popular vote outcome is my Y.
+
+we are using generic ballot to predict 2022
+
+*This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
+
+# Introduction
+
+This week in Election Analytics, the subject of discussion is Polling. How do polls impact election predictions? Are they reliable? How should they be weighed when compared to other factors like the fundamentals, or economy-based predictions? Before diving into my model and this week's adjustments, let's break down the work of some more experienced pollsters.
+
+Nate Silver became almost a household name in 2008 after he successfully predicted the outcome of the presidential election in 49 out of 50 states. His blog, FiveThirtyEight, has since become a leading election prediction model, taking into consideration a wide variety of factors. [FiveThirtyEight](https://fivethirtyeight.com/methodology/how-fivethirtyeights-house-and-senate-models-work/) takes the attitude that if it isn't broken, don't fix it. They have been slightly altering the same model for years, rather than creating a new model each year. They also use nearly identical models for their House, Senate, and gubernatorial races, predicating the results for all of them on localized data rather than the statewide and national data used for presidential elections. In 1907, Francis Galton proved the wisdom of the crowds, where the mean among a large group of guesses is likely to be close to the correct answer. Silver takes this to heart and relies less on polling when the quantity of polling is few or the quality of the polling is less reliable. Silver also makes many post-game adjustments to his models, accounting for likely voters, statistical bias, and timeline. Finally, a recent comment from FiveThirtyEight notes that their recent testing has shown that partisanship and generic ballot should have more influence than other fundamentals like incumbency.
+
+G. Elliott Morris is a data journalist for the Economist. He also manages the Economist's [election prediction model](https://projects.economist.com/us-2020-forecast/house). Much like FiveThirtyEight, the Economist's model takes into consideration polls, partisan lean, incumbency, the economy, and fundraising. Compared to Silver, however, Morris does not seem to apply the same frequent adjustments to his model (or at least does not describe them in his explanation). Morris is very aware of the tendency to over-fit models and consciously avoids this, through both cross-validation and, it seems, fewer manual adjustments. Morris also weighs polls differently than Silver. While Silver seems to calibrate polls against each other if one is consistently above or below the others, the Economist lends less weight overall to pollsters that tend to over or underestimate. 
+
+While both of these approaches are valid and lead to accurate results, I tend to favor Morris. While I prefer FiveThirtyEight's attention to partisanship and their method of calibrating polls against each other, they seem to engage in too much manual adjustment and overfitting that seems unnecessary or misleading. I will be taking these ideas into consideration as I assemble my own model.
+
+```{r, echo = FALSE, results = 'hide', fig.keep = 'all'}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(stargazer)
+
+## read in data 
+popvote_df <- read_csv("house_popvote_seats copy.csv")
+economy_df <- read_csv("Copy of GDP_quarterly.csv")
+polls_df    <- read_csv("polls_df.csv")
+generic22_df  <- read_csv("538_generic_poll_2022.csv")
+
+# generic22filtered <- generic22_df %>% 
+#  select("pollster", "samplesize", "dem", "rep", "enddate") %>% 
+#  rename("sample_size" = "samplesize") %>% 
+#  mutate(year = 2022)
+
+# genericfiltered <- poll_df %>%   
+#  select("pollster", "sample_size", "dem", "rep", "year", "days_until_election")
+# genericballot <- full_join(generic22filtered, genericfiltered)
+
+winterpolls <- polls_df %>% 
+                  filter(days_until_election >= 90) %>% 
+                  group_by(year, party) %>% 
+                  summarise(avg_support = mean(support)) %>% 
+                  spread(key = "party", value = "avg_support")
+
+datpollpop <- popvote_df %>% 
+    inner_join(winterpolls)
+
+economyfiltered <- economy_df %>% 
+                  filter(quarter_cycle == 6) %>% 
+                  select("year", "GDP_growth_qt", "GDP_growth_pct")
+
+dat <- datpollpop %>% 
+    left_join(economyfiltered)
+
+# create variable of support for incumbent
+dat <- dat %>%mutate(H_incumbent_avg_support = ifelse(H_incumbent_party == "R", dat$R, dat$D))
+
+## model - fundamentals + polls
+dat_plus <- dat
+dat_plus_inc <- dat_plus[dat_plus$H_incumbent_party_winner == TRUE,]
+dat_plus_chl <- dat_plus[!dat_plus$H_incumbent_party_winner == TRUE,]
+
+mod_dat_plus <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + GDP_growth_pct, data = dat_plus)
+mod_plus_inc <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + GDP_growth_pct, data = dat_plus_inc)
+mod_plus_chl <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + GDP_growth_pct, data = dat_plus_chl)
+
+summary(mod_dat_plus) # 0.3236
+summary(mod_plus_inc) # 0.04815
+summary(mod_plus_chl) # 0.2001
+  
+stargazer(mod_plus_inc)
+stargazer(mod_plus_chl)
+
+dat_plus %>% 
+   ggplot(aes(x = (H_incumbent_avg_support + GDP_growth_pct),
+             y=H_incumbent_party_majorvote_pct,
+             label = year, color = ifelse(dat_plus$H_incumbent_party_winner == TRUE, "purple", "green4"))) + 
+    geom_text(size = 4) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    xlab("Incumbent Support and GDP") +
+    ylab("Incumbent Party PV") +
+    theme_bw() +
+    ggtitle("Incumbent Average Support", subtitle = "Blue is when incumbents won and red is when challengers won.") + 
+    theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 14),
+          plot.title = element_text(size = 18),
+          legend.position = c(55, 48)) +
+    labs(color = "Incumbent Winner")
+
+dat_plus %>% 
+   ggplot(aes(x = (H_incumbent_avg_support + GDP_growth_pct),
+             y=H_incumbent_party_majorvote_pct,
+             label = year)) + 
+    geom_text(size = 4, color = ifelse(dat_plus$H_incumbent_party_winner == TRUE, "purple", "green4")) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    xlab("Incumbent Support and GDP") +
+    ylab("Incumbent Party PV") +
+    theme_bw() +
+    ggtitle("Incumbent Average Support", subtitle = "Blue is when incumbents won and red is when challengers won.") + 
+    theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 14),
+          plot.title = element_text(size = 18),
+          legend.position = c(55, 48)) +
+    labs(color = "Incumbent Winner")
+    
+```
+
+```{r, echo = FALSE, results = 'hide', fig.keep = 'all'}
+
+# in-sample fit
+mean(abs(mod_dat_plus$residuals))
+mean(abs(mod_plus_inc$residuals))
+mean(abs(mod_plus_chl$residuals))
+
+par(mfrow=c(3,2))
+{
+    plot(mod_plus_inc$fitted.values, dat_plus_inc$H_incumbent_party_majorvote_pct,
+         main="plus (incumbent)", xlab="predicted", ylab="true", 
+         cex.lab=2, cex.main=2, type='n',xlim=c(40,55),ylim=c(40,55))
+    text(mod_plus_inc$fitted.values, dat_plus_inc$pv, dat_plus_inc$year)
+    abline(a=0, b=1, lty=2)
+    
+    plot(mod_plus_chl$fitted.values, dat_plus_chl$H_incumbent_party_majorvote_pct,
+         main="plus (challenger)", xlab="predicted", ylab="true", 
+         cex.lab=2, cex.main=2, type='n',xlim=c(40,55),ylim=c(40,55))
+    text(mod_plus_chl$fitted.values, dat_plus_chl$pv, dat_plus_chl$year)
+    abline(a=0, b=1, lty=2)
+}
+
+# out of sample evaluation
+all_years <- seq(from=1948, to=2016, by=4)
+outsamp_dflist <- lapply(all_years, function(year){
+ 
+  true_inc <- unique(dat$pv[dat$year == year & dat$incumbent_party_winner])
+  true_chl <- unique(dat$pv[dat$year == year & !dat$incumbent_party_winner])
+  
+  mod_plus_inc_ <- lm(pv ~ GDP_growth_qt + avg_support, data = dat_plus_inc[dat_poll_inc$year != year,])
+    mod_plus_chl_ <- lm(pv ~ GDP_growth_qt + avg_support, data = dat_plus_chl[dat_poll_chl$year != year,])
+    pred_plus_inc <- predict(mod_plus_inc_, dat_plus_inc[dat_plus_inc$year == year,])
+    pred_plus_chl <- predict(mod_plus_chl_, dat_plus_chl[dat_plus_chl$year == year,])
+  } else {
+    pred_poll_inc <- pred_poll_chl <- pred_plus_inc <- pred_plus_chl <- NA
+  }
+  
+  cbind.data.frame(year,
+        plus_margin_error = (pred_plus_inc-pred_plus_chl) - (true_inc-true_chl),
+        plus_winner_correct = (pred_plus_inc > pred_plus_chl) == (true_inc > true_chl)
+  )
+})
+
+outsamp_df <- do.call(rbind, outsamp_dflist)
+colMeans(abs(outsamp_df[2:4]), na.rm=T)
+colMeans(outsamp_df[5:7], na.rm=T) ### classification accuracy
+
+outsamp_df[,c("year","econ_winner_correct","poll_winner_correct","plus_winner_correct")]
+
+
+# Predicting 2022
+
+dat_2022_inc <- data.frame(GDP_growth_qt = -9.49, avg_support = __)
+dat_2022_chl <- data.frame(GDP_growth_qt = -9.49, avg_support = __)
+
+## point predictions
+predict(mod_plus_inc, newdata = dat_2020_inc)
+predict(mod_plus_chl, newdata = dat_2020_chl)
+
+## prediction intervals
+(pred_plus_inc <- predict(mod_plus_inc, dat_2020_inc, 
+                          interval = "prediction", level=0.95))
+(pred_plus_chl <- predict(mod_plus_chl, dat_2020_chl, 
+                          interval = "prediction", level=0.95))
+
+pred_df <- rbind.data.frame(
+  data.frame(pred_plus_inc, model="plus", candidate="Trump"),
+  data.frame(pred_plus_chl, model="plus", candidate="Biden"),
+)
+ggplot(pred_df, 
+       aes(x=candidate, y=fit, ymin=lwr, ymax=upr, color=model)) +
+  geom_pointrange(position = position_dodge(width = 0.5)) + 
+  theme_bw()
+```
+
