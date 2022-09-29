@@ -25,26 +25,25 @@ G. Elliott Morris is a data journalist for the Economist. He also manages the Ec
 
 While both of these approaches are valid and lead to accurate results, I tend to favor Morris. While I prefer FiveThirtyEight's attention to partisanship and their method of calibrating polls against each other, they seem to engage in too much manual adjustment and overfitting that seems unnecessary or misleading. I will be taking these ideas into consideration as I assemble my own model.
 
-```{r, echo = FALSE, results = 'hide', fig.keep = 'all'}
+# Modeling
+
+Last week, I found that economic factors are a solid base for a prediction, though not a good sole factor to rely on. I decided that this was enough to warrant including economic factors in my model this week. However, I chose to use GDP over RDI because my model responded better to it during testing. In order to create this week's model, I modified, selected, grouped, summarised, and spread datasets containing generic poll results, economic factors, and popular vote margins for 1950 through 2020. Based on Gelman and King's article describing how polls conducted further in advance of the election are often more accurate, I also filtered the polling data to focus on polls conducted more than 90 days before election day. Finally, I was able to create a data frame for modeling and graphing. I regressed Incumbent Party Vote Share on a combination of Incumbent Average Support in generic polls and GDP growth percent. I calculated regressions for all the data together and I split it up between cases where the incumbent party won and lost. 
+
+Below, you will find two graphs, one showing the different regressions for incumbent win versus challenger win, and the other showing the regression line for all of the data together. The second graph marks in green the challenger wins.
+
+In the first graph, neither incumbent wins nor challenger wins seem to be particularly well-correlated. In the second, the correlation seems weak but still stronger than the split set. The stargazer results back this up.  The adjusted r-squared value of the incumbent-win-only regression is abysmal at 0.04815, indicating basically no correlation. The challenger-win-only regression is much stronger at 0.2001, though this would typically not be considered a strong correlation to rely on for predictions. The regression for all of the data together proved to have a stronger correlation than either of the subsets, with an adjusted r-squared value of 0.3236. This regression also had an extremely low p-value.
+
+```{r, echo = FALSE, results = 'hide'}
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(stargazer)
+library(blogdown)
 
 ## read in data 
 popvote_df <- read_csv("house_popvote_seats copy.csv")
 economy_df <- read_csv("Copy of GDP_quarterly.csv")
 polls_df    <- read_csv("polls_df.csv")
-generic22_df  <- read_csv("538_generic_poll_2022.csv")
-
-# generic22filtered <- generic22_df %>% 
-#  select("pollster", "samplesize", "dem", "rep", "enddate") %>% 
-#  rename("sample_size" = "samplesize") %>% 
-#  mutate(year = 2022)
-
-# genericfiltered <- poll_df %>%   
-#  select("pollster", "sample_size", "dem", "rep", "year", "days_until_election")
-# genericballot <- full_join(generic22filtered, genericfiltered)
 
 winterpolls <- polls_df %>% 
                   filter(days_until_election >= 90) %>% 
@@ -63,7 +62,7 @@ dat <- datpollpop %>%
     left_join(economyfiltered)
 
 # create variable of support for incumbent
-dat <- dat %>%mutate(H_incumbent_avg_support = ifelse(H_incumbent_party == "R", dat$R, dat$D))
+dat <- dat %>% mutate(H_incumbent_avg_support = ifelse(H_incumbent_party == "R", dat$R, dat$D))
 
 ## model - fundamentals + polls
 dat_plus <- dat
@@ -74,10 +73,11 @@ mod_dat_plus <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + G
 mod_plus_inc <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + GDP_growth_pct, data = dat_plus_inc)
 mod_plus_chl <- lm(H_incumbent_party_majorvote_pct ~ H_incumbent_avg_support + GDP_growth_pct, data = dat_plus_chl)
 
-summary(mod_dat_plus) # 0.3236
-summary(mod_plus_inc) # 0.04815
-summary(mod_plus_chl) # 0.2001
-  
+# summary(mod_dat_plus) #r2 0.3236
+# summary(mod_plus_inc) # 0.04815
+# summary(mod_plus_chl) # 0.2001
+
+stargazer(mod_dat_plus)
 stargazer(mod_plus_inc)
 stargazer(mod_plus_chl)
 
@@ -97,7 +97,7 @@ dat_plus %>%
           legend.position = c(55, 48)) +
     labs(color = "Incumbent Winner")
 
-dat_plus %>% 
+datreg <- dat_plus %>% 
    ggplot(aes(x = (H_incumbent_avg_support + GDP_growth_pct),
              y=H_incumbent_party_majorvote_pct,
              label = year)) + 
@@ -106,87 +106,76 @@ dat_plus %>%
     xlab("Incumbent Support and GDP") +
     ylab("Incumbent Party PV") +
     theme_bw() +
-    ggtitle("Incumbent Average Support", subtitle = "Blue is when incumbents won and red is when challengers won.") + 
+    ggtitle("Incumbent Average Support", subtitle = "Purple is when incumbents won and green is when challengers won.") + 
     theme(axis.text = element_text(size = 12),
           axis.title = element_text(size = 14),
           plot.title = element_text(size = 18),
           legend.position = c(55, 48)) +
     labs(color = "Incumbent Winner")
+
+datreg
     
 ```
+Despite its p-value, the regression on all of the data had relatively high residuals, sending mixed messages about the quality of the correlation. The regression on incumbent wins alone was not much better, but the regression on incumbent popular vote with a challenger win had a relatively low residual of about 1. This is important for our purposes because the most pressing question about the upcoming election is whether the Democrats will maintain their majority in Congress. If we can accurately predict the incumbent percent vote with a challenger win, we may be able to predict whether the Democrats will be unseated.
 
-```{r, echo = FALSE, results = 'hide', fig.keep = 'all'}
+```{r, echo = FALSE, results = 'hide'}
 
 # in-sample fit
 mean(abs(mod_dat_plus$residuals))
 mean(abs(mod_plus_inc$residuals))
 mean(abs(mod_plus_chl$residuals))
 
-par(mfrow=c(3,2))
-{
-    plot(mod_plus_inc$fitted.values, dat_plus_inc$H_incumbent_party_majorvote_pct,
-         main="plus (incumbent)", xlab="predicted", ylab="true", 
-         cex.lab=2, cex.main=2, type='n',xlim=c(40,55),ylim=c(40,55))
-    text(mod_plus_inc$fitted.values, dat_plus_inc$pv, dat_plus_inc$year)
-    abline(a=0, b=1, lty=2)
-    
-    plot(mod_plus_chl$fitted.values, dat_plus_chl$H_incumbent_party_majorvote_pct,
-         main="plus (challenger)", xlab="predicted", ylab="true", 
-         cex.lab=2, cex.main=2, type='n',xlim=c(40,55),ylim=c(40,55))
-    text(mod_plus_chl$fitted.values, dat_plus_chl$pv, dat_plus_chl$year)
-    abline(a=0, b=1, lty=2)
-}
-
-# out of sample evaluation
-all_years <- seq(from=1948, to=2016, by=4)
-outsamp_dflist <- lapply(all_years, function(year){
- 
-  true_inc <- unique(dat$pv[dat$year == year & dat$incumbent_party_winner])
-  true_chl <- unique(dat$pv[dat$year == year & !dat$incumbent_party_winner])
-  
-  mod_plus_inc_ <- lm(pv ~ GDP_growth_qt + avg_support, data = dat_plus_inc[dat_poll_inc$year != year,])
-    mod_plus_chl_ <- lm(pv ~ GDP_growth_qt + avg_support, data = dat_plus_chl[dat_poll_chl$year != year,])
-    pred_plus_inc <- predict(mod_plus_inc_, dat_plus_inc[dat_plus_inc$year == year,])
-    pred_plus_chl <- predict(mod_plus_chl_, dat_plus_chl[dat_plus_chl$year == year,])
-  } else {
-    pred_poll_inc <- pred_poll_chl <- pred_plus_inc <- pred_plus_chl <- NA
-  }
-  
-  cbind.data.frame(year,
-        plus_margin_error = (pred_plus_inc-pred_plus_chl) - (true_inc-true_chl),
-        plus_winner_correct = (pred_plus_inc > pred_plus_chl) == (true_inc > true_chl)
-  )
-})
-
-outsamp_df <- do.call(rbind, outsamp_dflist)
-colMeans(abs(outsamp_df[2:4]), na.rm=T)
-colMeans(outsamp_df[5:7], na.rm=T) ### classification accuracy
-
-outsamp_df[,c("year","econ_winner_correct","poll_winner_correct","plus_winner_correct")]
-
-
 # Predicting 2022
+generic22_df  <- read_csv("538_generic_poll_2022.csv")
+generic22filt <- generic22_df %>% 
+  select("pollster", "samplesize", "dem", "rep") %>% 
+  rename("sample_size" = "samplesize") %>% 
+  mutate(year=2022)
+pollsfiltered <- polls_df %>% 
+  pivot_wider(names_from = "party", values_from = "support") %>% 
+  select("pollster", "sample_size", "D", "R", "year") %>% 
+  rename("dem" = "D") %>% 
+  rename("rep" = "R")
+genericballot <- full_join(generic22filt, pollsfiltered)
 
-dat_2022_inc <- data.frame(GDP_growth_qt = -9.49, avg_support = __)
-dat_2022_chl <- data.frame(GDP_growth_qt = -9.49, avg_support = __)
+economy22 <- economy_df %>% 
+                  filter(year == "2022", quarter_cycle == 6) %>% 
+                  select("year", "GDP_growth_qt", "GDP_growth_pct")
+
+dat22 <- generic22filt %>% 
+    left_join(economy22)
+
+demsupport <- mean(dat22$dem) # 43.67011
+repsupport <- mean(dat22$rep) # 42.2899
+
+dat_2022_inc <- data.frame(GDP_growth_pct = 2.034715644, avg_support = demsupport)
+dat_2022_chl <- data.frame(GDP_growth_pct = 2.034715644, avg_support = repsupport)
+dat_2022_all <- data.frame(GDP_growth_pct = 2.034715644, avg_support = (.5*(repsupport + demsupport)))
+
 
 ## point predictions
-predict(mod_plus_inc, newdata = dat_2020_inc)
-predict(mod_plus_chl, newdata = dat_2020_chl)
+predict(mod_plus_inc, newdata = dat_2022_inc) # 53.06198
+predict(mod_plus_chl, newdata = dat_2022_chl) # 48.23634
+predict(mod_dat_plus, newdata = dat_2022_all) # 50.51226
 
 ## prediction intervals
-(pred_plus_inc <- predict(mod_plus_inc, dat_2020_inc, 
+(pred_plus_inc <- predict(mod_plus_inc, dat_2022_inc, 
                           interval = "prediction", level=0.95))
-(pred_plus_chl <- predict(mod_plus_chl, dat_2020_chl, 
+(pred_plus_chl <- predict(mod_plus_chl, dat_2022_chl, 
+                          interval = "prediction", level=0.95))
+(pred_dat_plus <- predict(mod_dat_plus, dat_2022_all, 
                           interval = "prediction", level=0.95))
 
-pred_df <- rbind.data.frame(
-  data.frame(pred_plus_inc, model="plus", candidate="Trump"),
-  data.frame(pred_plus_chl, model="plus", candidate="Biden"),
-)
+pred_df <- rbind(
+  data.frame(pred_plus_inc, model = "Plus", party="Republican"),
+  data.frame(pred_plus_chl, model = "Plus", party="Democrat"))
 ggplot(pred_df, 
-       aes(x=candidate, y=fit, ymin=lwr, ymax=upr, color=model)) +
+       aes(x=party, y = fit, ymin=lwr, ymax=upr, color=model)) +
   geom_pointrange(position = position_dodge(width = 0.5)) + 
   theme_bw()
-```
 
+datreg +
+geom_point(aes((2.034715644 + demsupport), predict(mod_plus_inc, newdata = dat_2022_inc)), colour = "blue")
+
+```
+Looking at the blue dot on the graph above, The final prediction based on this data is that the Democrats will win the popular vote at 53.06198, holding onto their majority. However, the upper and lower bounds on the graph of the model predictions do intersect, meaning that this prediction cannot be certain.
