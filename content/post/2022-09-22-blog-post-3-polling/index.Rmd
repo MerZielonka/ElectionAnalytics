@@ -7,12 +7,6 @@ categories: []
 tags: []
 ---
 
-Question: using econ and polls to explain popular vote outcome.
-
-incumbent party popular vote outcome is my Y.
-
-we are using generic ballot to predict 2022
-
 *This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
 
 # Introduction
