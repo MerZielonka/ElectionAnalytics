@@ -6,7 +6,26 @@
     <description>Recent content in Posts on Meredith Zielonka</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 15 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blog 4: Incumbency</title>
+      <link>http://example.org/post/2022-09-29-blog-4-incumbency/</link>
+      <pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-09-29-blog-4-incumbency/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Blog Post 3: Polling</title>
+      <link>http://example.org/post/2022-09-22-blog-post-3-polling/</link>
+      <pubDate>Thu, 22 Sep 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-09-22-blog-post-3-polling/</guid>
+      <description>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.
+Introduction This week in Election Analytics, the subject of discussion is Polling. How do polls impact election predictions? Are they reliable? How should they be weighed when compared to other factors like the fundamentals, or economy-based predictions? Before diving into my model and this week’s adjustments, let’s break down the work of some more experienced pollsters.</description>
+    </item>
+    
     <item>
       <title>Blog Post 2</title>
       <link>http://example.org/post/2022-09-15-blog-post-2/</link>

@@ -153,12 +153,12 @@ predict(mod_plus_chl, newdata = dat_2022_chl) # 48.23634
 predict(mod_dat_plus, newdata = dat_2022_all) # 50.51226
 
 ## prediction intervals
-pred_plus_inc <- predict(mod_plus_inc, newdata = dat_2022_inc, 
-                          interval = "prediction", level=0.95)
-pred_plus_chl <- predict(mod_plus_chl, newdata = dat_2022_chl, 
-                          interval = "prediction", level=0.95)
-pred_dat_plus <- predict(mod_dat_plus, newdata = dat_2022_all, 
-                          interval = "prediction", level=0.95)
+(pred_plus_inc <- predict(mod_plus_inc, dat_2022_inc, 
+                          interval = "prediction", level=0.95))
+(pred_plus_chl <- predict(mod_plus_chl, dat_2022_chl, 
+                          interval = "prediction", level=0.95))
+(pred_dat_plus <- predict(mod_dat_plus, dat_2022_all, 
+                          interval = "prediction", level=0.95))
 
 pred_df <- rbind(
   data.frame(pred_plus_inc, model = "Plus", party="Republican"),
