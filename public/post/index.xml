@@ -13,7 +13,9 @@
       <pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate>
       
       <guid>http://example.org/post/2022-09-29-blog-4-incumbency/</guid>
-      <description></description>
+      <description>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.
+Introduction This week in Election Analytics, we will be incorporating incumbency and expert predictions into our existing models.
+Incumbency is widely considered to have an impact in elections. In recent years, analysts have looked deeper into this, identifying two types of incumbent impact: President’s Party and district-level incumbency.</description>
     </item>
     
     <item>
