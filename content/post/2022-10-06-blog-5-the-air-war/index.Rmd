@@ -1,0 +1,317 @@
+---
+title: 'Blog 5: The Air War'
+author: "Meredith Zielonka"
+date: '2022-10-06'
+output: pdf_document
+categories: []
+tags: []
+slug: []
+---
+
+*This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
+
+This week, Gov 1347 is looking at the Air War: the neverending battle between campaigns to capture potential voters' attention via television advertisements. There are different theories about the impact of campaign ads on voting preferences but both Gerber et al. and Huber and Arceneaux, our authors for the week, have discovered through their research that ads have little to no effect on voter mobilization. Huber and Arceneaux also found that ads are strongly persuasive as to candidate choice, while Gerber et al. clarified that this persuasive impact is extremely short-lived, contributing to the increase in ads immediately before the election. 
+
+In order to visualize the effect of the air war on elections, I began by creating a scatterplot of Democratic ads and voteshare in 2018. This showed a direct correlation between higher vote share and fewer ads, leading to the inference that Democrats target their ads mostly in districts with close races.
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(janitor)
+library(stargazer)
+require(ggplot2)
+require(sf)
+library(usmap)
+library(ggmap)
+library(rmapshaper)
+library(blogdown)
+
+# load datasets
+pvstate_df   <- read_csv("histratings.csv")
+ads  <- read_csv("ads_2006_2018 (1).csv")
+cands2022 <- read_csv("house_cands.csv")
+polls <- read_csv("dist_polls_2018-2022.csv")
+states <- read_csv("us-state.csv") 
+states <- states %>% select(stname, st) %>% rename("st_fips" = "st")
+```
+
+```{r}
+cands2022 <- cands2022 %>% 
+    mutate(incumbentdem = ifelse(
+      cand_party == "Democratic" & incumbent == 1, 1, 0)) %>% 
+    mutate(year = 2022) %>% 
+    filter(cand_party == "Democratic") %>% 
+      select(state, district, incumbentdem, year) %>% 
+    rename("demincumbent" = "incumbentdem") 
+
+expert_ratings <- read_csv("expert_rating.csv")
+historical_results <- read_csv("house party vote share by district 1948-2020.csv") %>% 
+  clean_names()
+
+nums <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+historical_results$district_num <- 
+  ifelse(historical_results$district_num %in% nums, 
+              paste0("0", historical_results$district_num),
+              historical_results$district_num)
+
+historical_results$st_fips <- 
+  ifelse(historical_results$st_fips %in% nums, 
+                  paste0("0", historical_results$st_fips), 
+                  historical_results$st_fips)
+
+avg_ratings <- expert_ratings %>% 
+  select(year, state, district, avg_rating)
+
+dem_results <- historical_results %>% 
+  select(race_year, state, area, dem_votes_major_percent, dem_status, rep_status, third_status, st_fips, district_num) %>%
+  rename("year" = "race_year") %>% 
+  separate(area, into = c("area", "district"), sep = " ") %>% 
+  select(-area) %>% 
+  mutate(district = case_when(
+    district == "Large" ~ "AL",
+    TRUE ~ district
+    ))
+
+# code new incumbent variable
+dem_results <- dem_results %>%
+               mutate(demincumbent = case_when(
+    dem_status == "Incumbent" ~ 1,
+    dem_status == "Challenger" ~ 0,
+    dem_status == NA ~ 0,
+    rep_status == "Incumbent" ~ 0,
+    rep_status == "Challenger" ~ 0,
+    third_status == "Incumbent" ~ 0,
+    third_status == "Challenger" ~ 0))
+
+dem_results <-merge(dem_results, cands2022, all=TRUE)
+
+histratings <- left_join(dem_results, avg_ratings, by = c("year", "state", "district")) 
+
+ads_sum <- ads %>%
+  mutate(count = 1) %>%
+  group_by(cycle, state, district, party) %>%
+  summarise(num = sum(count)) %>%
+  filter(party == "Democrat" | party == "Republican") %>%
+  drop_na(district) %>% 
+  pivot_wider(names_from = party, values_from = num) %>% 
+  rename("DemAds" = "Democrat") %>% 
+  rename("RepAds" = "Republican") %>% 
+  rename(year = cycle)
+
+
+adsratings <- histratings %>%
+  select(state, year, dem_votes_major_percent, district, district_num, avg_rating, st_fips, demincumbent)  %>%
+  full_join(ads_sum, by = c("year", "state", "district"))
+
+adsratings$district <- 
+  ifelse(adsratings$district %in% nums, 
+              paste0("0", adsratings$district),
+              adsratings$district)
+
+adsratings$st_fips <- case_when(
+  adsratings$state == "Alabama" ~ "01", 
+  adsratings$state == "Alaska" ~ "02", 
+  adsratings$state == "Arizona" ~ "04", 
+  adsratings$state == "Arkansas" ~ "05", 
+  adsratings$state == "California" ~ "06", 
+  adsratings$state == "Colorado" ~ "08", 
+  adsratings$state == "Connecticut" ~ "09", 
+  adsratings$state == "Delaware" ~ "10", 
+  adsratings$state == "District of Columbia" ~ "11", 
+  adsratings$state == "Florida" ~ "12", 
+  adsratings$state == "Georgia" ~ "13", 
+  adsratings$state == "Hawaii" ~ "15", 
+  adsratings$state == "Idaho" ~ "16", 
+  adsratings$state == "Illinois" ~ "17", 
+  adsratings$state == "Indiana" ~ "18", 
+  adsratings$state == "Iowa" ~ "19", 
+  adsratings$state == "Kansas" ~ "20", 
+  adsratings$state == "Kentucky" ~ "21", 
+  adsratings$state == "Louisiana" ~ "22", 
+  adsratings$state == "Maine" ~ "23", 
+  adsratings$state == "Maryland" ~ "24", 
+  adsratings$state == "Massachusetts" ~ "25", 
+  adsratings$state == "Michigan" ~ "26", 
+  adsratings$state == "Minnesota" ~ "27", 
+  adsratings$state == "Mississippi" ~ "28", 
+  adsratings$state == "Missouri" ~ "29", 
+  adsratings$state == "Montana" ~ "30", 
+  adsratings$state == "Nebraska" ~ "31", 
+  adsratings$state == "Nevada" ~ "32", 
+  adsratings$state == "New Hampshire" ~ "33", 
+  adsratings$state == "New Jersey" ~ "34", 
+  adsratings$state == "New Mexico" ~ "35", 
+  adsratings$state == "New York" ~ "36", 
+  adsratings$state == "North Carolina" ~ "37", 
+  adsratings$state == "North Dakota" ~ "38", 
+  adsratings$state == "Ohio" ~ "39", 
+  adsratings$state == "Oklahoma" ~ "40", 
+  adsratings$state == "Oregon" ~ "41", 
+  adsratings$state == "Pennsylvania" ~ "42", 
+  adsratings$state == "Rhode Island" ~ "44", 
+  adsratings$state == "South Carolina" ~ "45", 
+  adsratings$state == "South Dakota" ~ "46", 
+  adsratings$state == "Tennessee" ~ "47", 
+  adsratings$state == "Texas" ~ "48", 
+  adsratings$state == "Utah" ~ "49", 
+  adsratings$state == "Vermont" ~ "50", 
+  adsratings$state == "Virginia" ~ "51", 
+  adsratings$state == "Washington" ~ "53", 
+  adsratings$state == "West Virginia" ~ "54", 
+  adsratings$state == "Wisconsin" ~ "55", 
+  adsratings$state == "Wyoming" ~ "56")
+
+adsratings$binaryrating <- NA
+adsratings <- adsratings %>% 
+  mutate(binaryrating = ifelse(is.na(avg_rating), 0, 1))
+
+adsratings$binarydemads <- NA
+adsratings <- adsratings %>% 
+  mutate(binarydemads = ifelse(is.na(DemAds), 0, 1)) 
+
+adsratings$DemAds[is.na(adsratings$DemAds)] <- 0
+
+adsratings2018 <- adsratings %>% filter(year == 2018) %>% 
+  select(state, year, dem_votes_major_percent, district, st_fips, demincumbent, binaryrating, binarydemads, avg_rating, DemAds) %>% 
+  drop_na()
+
+adsratings <- adsratings %>% select(state, year, dem_votes_major_percent, district, st_fips, demincumbent, binaryrating, binarydemads, avg_rating, DemAds) 
+
+modeldemad2018 <- lm(dem_votes_major_percent ~ demincumbent + binaryrating + binarydemads, data = adsratings2018)
+
+ggplot(adsratings2018, aes(x  = DemAds, y = dem_votes_major_percent)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  xlab("Democrat Number of Ads") +
+  ylab("Democratic Two-Party Vote Share") + 
+  labs(title = "Democratic Two-Party Vote Share by Democrat Number of Ads", subtitle = "Congressional districts where at least one party bought ads, midterm elections 2018")
+```
+
+In order to have a greater understanding of where Democratic ads were being broadcast, I also created a gradient map showing which districts have the most ads run in them.
+
+# Maps
+
+```{r maps, eval = TRUE, echo = FALSE}
+ads_sum <- ads_sum %>% 
+  rename(DISTRICT = district, STATENAME = state)
+cd116 <- st_read("districtShapes/districts114.shp", quiet = TRUE)
+cd116 <- cd116 %>% left_join(ads_sum, by=c("DISTRICT", "STATENAME")) %>% filter(STATENAME != "Alaska", STATENAME != "Hawaii")
+districts_simp <- rmapshaper::ms_simplify(cd116, keep = 0.01)
+
+# plot for number of ads per state
+ggplot() +
+  geom_sf(data = districts_simp, aes(fill = DemAds, geometry = geometry),
+          inherit.aes = FALSE, alpha = 0.9) +
+  scale_fill_gradient(low = "white", high = "blue") +
+  theme_void() + 
+  labs(title = "The 2018 Election Democratic Ads by District and State", col = "Dem") +
+  theme(axis.title.x=element_blank(),
+      axis.text.x=element_blank(),
+      axis.ticks.x=element_blank(),
+      axis.title.y=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+```
+This map shows pretty clearly the accuracy of the prior scatterplot. Most Democratic ads are run in a fraction of all districts, and are highly targeted. This led me to start strategically thinking about my models. I wanted to incorporate ads while taking into account how targeted they are towards swing districts, so I coded a binary variable to indicate whether there were ads or not. I also coded a binary variable for whether there were expert ratings or not because this is another indicator of a swing district. 
+
+
+```{r, eval=TRUE, echo=FALSE}
+# subset
+# polls_df <- polls %>%
+#  select(party, candidate_name, pct, st_fips, cd_fips, cycle) %>%
+#  rename("year" = "cycle") %>% 
+#  rename("district" = "cd_fips") %>% # for merging
+#  filter(party == "DEM")
+
+# avg_polls <- polls_df %>% 
+#  select(st_fips, district, party, year, candidate_name, pct) %>% 
+#  group_by(year, candidate_name) %>% 
+#  summarize(avg_poll = mean(pct))
+
+# polls_select <- polls_df %>% 
+#   select(st_fips, district, party, year, candidate_name)
+
+# avg_polls <- polls_select %>% 
+#   left_join(avg_polls, polls_select, by = c("year", "candidate_name"))
+
+# join by 'year'
+# fulldat <- left_join(adsratings, avg_polls, by = c("st_fips", "district", "year"))
+
+#  select(year, state, st_fips, district, dem_votes_major_percent, demincumbent, avg_rating, avg_polls, DemAds)
+
+adsratingsfiltered <- adsratings %>% select(-avg_rating) %>% drop_na()
+
+adsratings2022 <- adsratings %>% select(-avg_rating) %>% distinct()
+
+# 2018 only train data
+
+train_data2018 <- adsratingsfiltered %>% 
+  filter(year == 2018) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+test_data <- adsratings2022 %>% 
+  filter(year == 2022) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+# Building MEDIOCRE models
+models2018 <- train_data2018 %>% 
+  mutate(model = map(data, ~lm(dem_votes_major_percent ~ DemAds + demincumbent + binaryrating, data = .x))) %>% 
+  select(-data)
+
+# Extracting model results
+# model_results2018 <- models2018 %>% 
+#  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
+
+# all train data
+
+# Joining the data and nesting by state and district
+train_data <- adsratingsfiltered %>% 
+  filter(year != 2022) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+test_data <- adsratings2022 %>% 
+  filter(year == 2022) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+# Building MEDIOCRE models
+models <- train_data %>% 
+  mutate(model = map(data, ~lm(dem_votes_major_percent ~ DemAds + demincumbent + binaryrating, data = .x))) %>% 
+  select(-data)
+
+models2 <- train_data %>% 
+  mutate(model = map(data, ~lm(dem_votes_major_percent ~ DemAds, data = .x))) %>% 
+  select(-data)
+
+# Extracting model results
+# model_results <- models2 %>% 
+#  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
+
+# Predicting 2022 with a model
+# pred_2022 <- test_data %>%
+  # inner join as there may not be historical models for some districts
+#  inner_join(models2, by = c("state", "district")) %>% 
+#  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
+#  select(state, district, pred)
+
+# print(pred_2022)
+```
+
+# Conclusion
+
+This week's extension assignment was to fit a model and create a prediction based solely on 2018 data, then evaluate the model for limitations. The first limitation was immediately obvious to me. Whenever I filtered my "training" data to just 2018 for the model, it caused my model to give NA values despite having the values. While wonky, this makes complete sense. When we train a model, we usually use multiple years and levels of data so the model can understand patterns from which to generate a prediction. 
+
+When using just 2018 data didn't work, I tried to make a model based on all the historical ads data that we had, plus my binary variables, but this model yielded r-squareds that were so low that they required the use of e plus some zeroes to accurately depict the small size. I tried taking out the binary variables but the r-squareds were still abysmally low. All of the data was so insignificant that R refused to use it as a basis for predictions and errored out.
+
+I believe that this is all representative of both Gerber et al. and Huber and Arceneaux's observations that ads have little to no effect, and I will avoid using them in the future in my observations.
+

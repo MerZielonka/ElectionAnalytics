@@ -6,7 +6,17 @@
     <description>Recent content in Posts on Meredith Zielonka</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 06 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blog 5: The Air War</title>
+      <link>http://example.org/post/2022-10-06-blog-5-the-air-war/</link>
+      <pubDate>Thu, 06 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-10-06-blog-5-the-air-war/</guid>
+      <description>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.
+This week, Gov 1347 is looking at the Air War: the neverending battle between campaigns to capture potential voters’ attention via television advertisements. There are different theories about the impact of campaign ads on voting preferences but both Gerber et al. and Huber and Arceneaux, our authors for the week, have discovered through their research that ads have little to no effect on voter mobilization.</description>
+    </item>
+    
     <item>
       <title>Blog 4: Incumbency</title>
       <link>http://example.org/post/2022-09-29-blog-4-incumbency/</link>
