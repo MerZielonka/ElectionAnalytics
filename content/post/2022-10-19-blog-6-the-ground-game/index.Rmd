@@ -1,0 +1,235 @@
+---
+title: 'Blog 6: The Ground Game'
+author: "Meredith Zielonka"
+date: '2022-10-19'
+slug: []
+categories: []
+tags: []
+---
+*This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
+
+# Introduction
+
+This week in Election Analytics, we are talking about the ground game, or the impact that campaign operations on the ground have on election outcomes.
+
+First, looking at the literature, there are a lot of opinions and research about different goals of the ground game, but most of them focus on persuasion, convicing a registered voter to vote for your preferred candidate, or mobilization,  getting a campaign's supporters out to vote. In their research, Professors Ryan Enos and Anthony Fowler found that presidential campaigns increased turnout substantially in highly targeted states, by around 7 or 8 percentage points on average. In comparison, Joshua Kalla and David Broockman found that campaigns have extremely low persuasive effects, amounting to an average of zero. Given this evidence, I decided to focus my analysis this week on the persuasive impact of campaigns on turnout.
+
+Originally, my plan was to create two models, one for states that had expert predictions and one that did not, using this as an indicator for swing states. However, in their analysis, Enos and Fowler coded a "Battleground" binary variable to indicate whether intense campaigning occurred in a given state, based on Sides and Vavreck's research. These also happened to be key swing states. I decided to mimic their method and code a similar variable, creating one model for battleground states based off of turnout, expert predictions and incumbency, and another for non-battleground states with just historical results and incumbency.
+
+Before we dive into the models, let's look at the distribution of turnout. Ideally, we would look at a map with specific distribution per state, but my R crashed every time I ran the mapping simplifier code. Instead, I made a bar plot showing the turnout per state and year. This isn't the most helpful bar plot but it does show us that Democratic turnout varies widely depending on the state and that years can have trends of more or less turnout. 
+
+```{r setup, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(janitor)
+library(stargazer)
+require(ggplot2)
+require(sf)
+library(usmap)
+library(ggmap)
+library(rmapshaper)
+library(blogdown)
+library(tinytex)
+```
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# read in data sets
+
+CVAP <- read.csv("cvap_district_2012-2020_clean.csv")
+hist <- read.csv("incumb_dist_1948-2020 (3).csv")
+expert <- read.csv("expert_rating.csv")
+cands <- read.csv("house_cands.csv")
+```
+
+```{r data, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+avgratings <- expert %>% 
+  select(year, state, district, avg_rating) %>% 
+  mutate(district = case_when(
+    district == "AL" ~ "0",
+    TRUE ~ district
+    )) 
+
+avgratings$district <- as.integer(avgratings$district)
+
+demhist <- hist %>% 
+  filter(year >= 2012) %>% 
+  select(year, state, district_num, DemVotesMajorPercent, DemStatus, RepStatus, st_cd_fips, president_party, DemVotes) %>%
+  rename("district" = "district_num")
+
+demhist <- demhist %>%
+               mutate(demincumbent = case_when(
+    DemStatus == "Incumbent" ~ 1,
+    DemStatus == "Challenger" ~ 0,
+    DemStatus == NA ~ 0,
+    RepStatus == "Incumbent" ~ 0,
+    RepStatus == "Challenger" ~ 0))
+
+cands <- cands %>% 
+  mutate(district = case_when(
+    district == "AL" ~ "0",
+    TRUE ~ district
+    )) %>% 
+  filter(cand_party == "Democratic") %>% 
+  select("state", "district", "incumbent") %>% 
+  rename("demincumbent" = "incumbent") %>% 
+  mutate(year = 2022) %>% 
+  mutate(president_party = "D")
+
+cands$district <- as.integer(cands$district)
+
+demhist <- demhist %>% 
+  full_join(cands)
+
+CVAP <- CVAP %>% 
+  rename("district" = "cd") %>% 
+  mutate(district = case_when(
+    district == "AL" ~ "0",
+    TRUE ~ district
+    )) %>% 
+  select("district", "state", "cvap", "year")
+
+CVAP$district <- as.integer(CVAP$district)
+    
+histcvap <- left_join(demhist, CVAP, by = c("district", "state", "year"))
+
+histcvap <- histcvap %>%  mutate(demturnout = DemVotes/cvap)
+
+histexpcvap <- left_join(histcvap, avgratings, by = c("district", "state", "year"))
+
+histexpcvap$battleground <- NA
+histexpcvap <- histexpcvap %>% 
+  mutate(battleground = case_when(
+    state == "Colorado" ~ "1",
+    state == "Florida" ~ "1",
+    state == "Iowa" ~ "1",
+    state == "Nevada" ~ "1",
+    state == "New Hampshire" ~ "1",
+    state == "North Carolina" ~ "1",
+    state == "Ohio" ~ "1",
+    state == "Virginia" ~ "1",
+    state == "Wisconsin" ~ "1",
+    TRUE ~ "0"))
+histexpcvap$battleground <- as.numeric(histexpcvap$battleground)
+
+# turnoutgraph <- histexpcvap %>% 
+#  rename(DISTRICT = district, STATENAME = state)
+
+# turnoutgraph$DISTRICT <- as.character(turnoutgraph$DISTRICT)
+
+# cd116 <- st_read("districtShapes/districts114.shp", quiet = TRUE)
+
+# cd116 <- cd116 %>% left_join(turnoutgraph, by=c("DISTRICT", "STATENAME")) %>% filter(STATENAME != "Alaska", STATENAME != "Hawaii")
+# districts_simp <- rmapshaper::ms_simplify(cd116, keep = 0.01)
+
+# ggplot() +
+#   geom_sf(data = districts_simp, aes(fill = turnout, geometry = geometry),
+#          inherit.aes = FALSE, alpha = 0.9) +
+#  scale_fill_gradient(low = "white", high = "blue") +
+#  theme_void() + 
+#  labs(title = "Democratic Turnout, 2012-2018", col = "Dem") +
+#  theme(axis.title.x=element_blank(),
+#      axis.text.x=element_blank(),
+#      axis.ticks.x=element_blank(),
+#      axis.title.y=element_blank(),
+#      axis.text.y=element_blank(),
+#      axis.ticks.y=element_blank())
+
+barplot(histexpcvap$demturnout, main = "Democratic Turnout by State", ylab = "Turnout")
+    
+```
+
+# Models
+
+Moving onto my models, I followed the plan that I explained earlier, dividing the states into battleground and not battleground in order to create separate models. I was originally going to include expert predictions in the model for battleground states, except that I found there to be way too much missing data that skewed my model. I decided that it would be better to rely on turnout as this would give an accurate picture of the impact of campaigns without the conflicts of all of the secret variables taken into account in expert predictions.
+
+I kept running into an issue where a few lines of missing data would prevent my entire model from running, so I ended up dropping the rows with missing data, which unfortunately decreased my pool of train data considerably. For next week, this is something I plan to work on to debug so I can apply a similar method again.
+
+# Conclusion
+
+I thought that my models worked well until I reached the prediction phase and received an error about digit alignment. However, I then ran into issues with the stargazer. At this point, I am considering scrapping the district-level approach because it seems to elicit more errors than actual predictions.
+
+Based on the data that I've seen this week, I believe that turnout is a useful predictor for the election as it reflects campaign efforts pretty accurately. I plan to incorporate incumbency and turnout into next week's prediction post.
+
+```{r subsets, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# subset whether they are battleground states or not
+
+databattle <- histexpcvap %>% 
+    filter(battleground == 1) %>% 
+    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, demturnout)
+
+datanobattle <- histexpcvap %>% 
+    filter(battleground == 0) %>% 
+    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, demturnout)
+```
+
+```{r training, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# Joining the data and nesting by state and district
+# training with battle
+train_data_battle <- databattle %>% 
+  filter(year != 2022) %>% 
+  drop_na() %>% 
+  group_by(state, district) %>% 
+  filter(n() > 1) %>% # Filtering out single data rows
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+test_data_battle <- databattle %>% 
+  filter(year == 2022) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+train_data_nobat <- datanobattle %>% 
+  filter(year != 2022) %>% 
+  group_by(state, district) %>% 
+  filter(n() > 1) %>% # Filtering out single data rows
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+test_data_nobat <- datanobattle %>% 
+  filter(year == 2022) %>% 
+  group_by(state, district) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+```
+
+```{r models, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+## BATTLEGROUND
+battlemodels <- train_data_battle %>% 
+  mutate(model = map(data, ~lm(DemVotesMajorPercent ~ demincumbent + demturnout, data = .x))) %>% 
+  select(-data)
+
+# Extracting results
+batmodel_results <- battlemodels %>% 
+  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
+
+## NO BATTLEGROUND
+models <- train_data_nobat %>% 
+  mutate(model = map(data, ~lm(DemVotesMajorPercent ~  demincumbent, data = .x))) %>% 
+  select(-data)
+
+# Extracting results
+model_results <- models %>% 
+  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
+
+stargazer(battlemodels, models, title="Battleground vs Not Battleground")
+```
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+
+# Predicting 2022 Battlegrounds
+# pred_2022_battle <- test_data_battle %>%
+#  inner_join(battlemodels, by = c("state", "district")) %>% 
+#  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
+#  select(state, district, pred)
+
+# Predicting 2022 Not Battlegrounds
+#pred_2022_notbat <- test_data_nobat %>%
+#  inner_join(models, by = c("state", "district")) %>%
+#  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
+#  select(state, district, pred)
+```

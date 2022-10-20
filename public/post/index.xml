@@ -6,7 +6,18 @@
     <description>Recent content in Posts on Meredith Zielonka</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 06 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 19 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blog 6: The Ground Game</title>
+      <link>http://example.org/post/2022-10-19-blog-6-the-ground-game/</link>
+      <pubDate>Wed, 19 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-10-19-blog-6-the-ground-game/</guid>
+      <description>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.
+Introduction This week in Election Analytics, we are talking about the ground game, or the impact that campaign operations on the ground have on election outcomes.
+First, looking at the literature, there are a lot of opinions and research about different goals of the ground game, but most of them focus on persuasion, convicing a registered voter to vote for your preferred candidate, or mobilization, getting a campaign’s supporters out to vote.</description>
+    </item>
+    
     <item>
       <title>Blog 5: The Air War</title>
       <link>http://example.org/post/2022-10-06-blog-5-the-air-war/</link>
