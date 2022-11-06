@@ -1,0 +1,383 @@
+---
+title: 'Blog 7: Shocks'
+author: Meredith Zielonka
+date: '2022-10-20'
+slug: []
+categories: []
+tags: []
+---
+*This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
+
+# Introduction
+
+This week in Election Analytics, two weeks out from the election, we are talking about "shocks," or significant events that have the capacity to change the outcome of an election.
+
+It has been established that voters evaluate incumbents based on past performance, but when reviewing shocks, do voters take them into account when making decisions? In our readings about shocks, two things became clear. First, Healy and Malhotra found that voters do punish incumbents, like many have theorized, except only for economic damages (Healy and Malhotra 2010). For example, incumbents would be punished for lack of compensation from tornado damage, not that the tornado happened in the first place. This suggests some amount of rationality among voters, an idea that usually is not that prevalent. Avina and Sevi back up this claim in their paper on the impact of Covid-19 on the 2020 election. When investigating whether Trump would have won had Covid not happened, they found that while the margin of the election may have been a little closer, Biden still would have won (Avina and Sevi 2021). This supports the idea that voting is a referendum on the actions and responses of elected officials rather than random events which occur outside their control. Fowler and Hall support this notion, finding that shark attacks, generally known to be extremely coincidental events with little possible response from officials, have negligible election influence (Fowler and Hall 2018). As a result, we can concur that voters are somewhat rational and do not punish incumbents for random or unlikely events, however if they perceive there to be a possible response, they will use that as a referendum on the incumbent.
+
+In the last year, one of the largest shocks was the Dobbs Supreme Court decision related to abortion rights. In class we looked at appearances of the word "Dobbs" in 2022 New York Times articles but for my assignment, I'd like to broaden that to include all mentions of the word "abortion."
+
+```{r setup, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(janitor)
+library(stargazer)
+require(ggplot2)
+require(sf)
+library(usmap)
+library(ggmap)
+library(rmapshaper)
+library(blogdown)
+library(tinytex)
+library(donnermap)
+library(dotenv)
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+```
+
+```{r data, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+histexpcvap <- read.csv("histexpcvap.csv")
+gdp <- read.csv("GDP_quarterly.csv")
+polls <- read.csv("dist_polls_2018-2022-csv.csv")
+
+gdp <- gdp %>%
+  select("quarter_yr", "quarter_cycle", "year", "GDP_growth_pct") %>% 
+  filter(quarter_cycle == 7) %>% 
+  select(-"quarter_yr", -"quarter_cycle")
+  
+histcvapgdp <- histexpcvap %>% 
+  left_join(gdp, by = "year")
+
+avgpolls <- polls %>% 
+  select("st_cd_fips", "cd_fips", "pct", "party", "cycle", "state") %>% 
+  filter(party == "DEM") %>% 
+  rename("year" = "cycle") %>% 
+  group_by(st_cd_fips, year) %>% 
+  mutate(dem_avgpoll = mean(pct)) %>% 
+  select(-"pct") %>% 
+  rename("district" = "cd_fips") %>% 
+  distinct() 
+
+avgpolls$district <- as.character(avgpolls$district)
+avgpolls$st_cd_fips <- as.character(avgpolls$st_cd_fips)
+
+avgpolls <- avgpolls %>% 
+    mutate(district = case_when(
+    state == "Wyoming" ~ "0",
+    state == "Vermont" ~ "0",
+    state == "South Dakota" ~ "0",
+    state == "North Dakota" ~ "0",
+    state == "Montana" ~ "0",
+    state == "Delaware" ~ "0",
+    state == "Alaska" ~ "0",
+    TRUE ~ district
+    )) %>% 
+   mutate(st_cd_fips = case_when(
+    state == "Wyoming" ~ "5600",
+    state == "Vermont" ~ "5000",
+    state == "South Dakota" ~ "4600",
+    state == "North Dakota" ~ "3800",
+    state == "Montana" ~ "3000",
+    state == "Delaware" ~ "1000",
+    state == "Alaska" ~ "200",
+    TRUE ~ st_cd_fips
+    ))
+
+avgpolls$district <- as.integer(avgpolls$district)
+avgpolls$st_cd_fips <- as.integer(avgpolls$st_cd_fips)
+
+pollhistna <- histcvapgdp %>%
+  left_join(avgpolls, by = c("year", "district", "state"))
+
+pollhist <- histcvapgdp %>%
+  inner_join(avgpolls, by = c("year", "district", "state"))
+
+```
+
+# Graphs
+
+After making some visualizations, it becomes easier to see the impact of discussion of abortion on the nationwide conversation. Figure 1 is a daily breakdown of the number of articles per day which mention abortion. This clearly shows that the number is almost always higher than two and sometimes hits five articles mentioning abortion per day. According to their website, the New York Times publishes roughly 150-200 articles per day across all of their platforms and sections. For abortion to be mentioned in 2.5% to 3% of their daily articles is a lot. 
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# load up hidden api key
+article_api <- "vvH9MNkpb2zgQBq6SbyamLFs3y67WUGj"
+#semantic_api <- Sys.getenv("SEMANTIC_API")
+
+# set base url
+base_url_art <- "http://api.nytimes.com/svc/search/v2/articlesearch.json?fq="
+#base_url_sem <- "http://api.nytimes.com/svc/semantic/v2/concept/name"w
+
+# set parameters
+term <- "abortion"
+facet_field <- "day_of_week"
+facet <- "true"
+begin_date <- "20220101"
+end_date <- "20221015"
+complete_url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json?fq=abortion&facet_field=day_of_week&facet=true&begin_date=20220101&end_date=20221015&api-key=vvH9MNkpb2zgQBq6SbyamLFs3y67WUGj"
+
+complete_url2 <-paste0(base_url_art,fq =term,"&facet_field=",facet_field,"&facet=",facet,"&begin_date=",begin_date,"&end_date=",end_date,"&api-key=",article_api,sep = "")
+
+# import dataset to R
+sus <- fromJSON(complete_url2) 
+
+# view how many hits
+sus$response$meta$hits
+
+hits <- sus$response$meta$hits
+cat("There were ",hits," hits for the search term abortion during 2022 to date",sep = "")
+
+max_pages <- round((hits / 10) - 1)
+
+# trying again - WORKS!!!
+ # sus0 <- fromJSON(paste0(complete_url2, "&page=0"), flatten = TRUE)
+ # nrow(sus0$response$docs)
+ # sus1 <- fromJSON(paste0(complete_url2, "&page=1"), flatten = TRUE)
+ # nrow(sus1$response$docs)
+ # sus2 <- fromJSON(paste0(complete_url2, "&page=2"), flatten = TRUE)
+ # nrow(sus2$response$docs)
+ # 
+ # organizations <- rbind_pages(
+ #   list(sus0$response$docs, sus1$response$docs, sus2$response$docs)
+ # )
+ # nrow(organizations)
+
+  pages <- list()
+  Sys.sleep(1) 
+  for(i in 0:24){
+    mydata <- fromJSON(paste0(complete_url2, "&page=", i))
+   message("Retrieving page ", i)
+   pages[[i+1]] <- mydata$response$docs
+   Sys.sleep(6) 
+ }
+
+#combine all into one
+ organizations <- rbind_pages(pages)
+
+#check output
+ nrow(organizations)
+
+ colnames(organizations)
+
+# trying with hits
+# sus0 <- fromJSON(paste0(complete_url2, "&page=0"), flatten = TRUE)
+# nrow(sus0$response)
+# sus1 <- fromJSON(paste0(complete_url2, "&page=1"), flatten = TRUE)
+# nrow(sus1$response$docs)
+# sus2 <- fromJSON(paste0(complete_url2, "&page=2"), flatten = TRUE)
+# nrow(sus2$response$docs)
+
+# organizations <- rbind_pages(
+#   list(sus0$response, sus1$response, sus2$response)
+# )
+# nrow(organizations)
+
+# pages <- list()
+# Sys.sleep(1) 
+# for(i in 0:24){
+#   mydata <- fromJSON(paste0(complete_url2, "&page=", i)) 
+#   message("Retrieving page ", i)
+#   pages[[i+1]] <- mydata$response$docs
+#   Sys.sleep(6) 
+# }
+
+# pages <- as.data.frame(pages)
+# do.call(rbind.data.frame, pages)
+# library (plyr)
+# pages <- ldply(pages, data.frame)
+# data.frame(t(sapply(pages,c)))
+# rbind.fill(pages)
+
+#combine all into one
+mydata <- rbind_pages(pages)
+
+#check output
+nrow(mydata)
+
+# save df
+saveRDS(mydata, file = "abortion_2022.RDS")
+
+# reload
+mydata <- readRDS("abortion_2022.RDS")
+
+# check colnames
+colnames(mydata)
+
+# visualization by month
+mydata %>% 
+  group_by(month = month(pub_date, label = T)) %>% 
+  dplyr::summarize(count = n()) %>%  
+  ggplot(aes(month, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "",
+         title = "NYT Articles mentioning Abortion in 2022",
+         color = "")
+
+# visualization by day
+mydata %>% 
+  group_by(month_day = paste0(month(pub_date, label = T),
+           day = day(pub_date))) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(month_day, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "",
+         title = "Figure 1: NYT Articles mentioning abortion in 2022",
+         color = "")
+
+# how about visualization by week
+# extract raw date
+mydata <- mydata %>% 
+  mutate(publ_date = substr(pub_date, 1, 10))
+head(mydata$publ_date)
+
+# mutate week variable
+mydata <- mydata %>% 
+  mutate(week = strftime(publ_date, format = "%V"))
+head(mydata$week)
+
+# plot
+mydata %>% 
+  group_by(week) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(week, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "Week",
+         title = "Figure 2: NYT Articles mentioning abortion in 2022",
+         color = "") + # now add line for when decision was leaked
+      geom_segment(x=("18"), xend=("18"),y=0,yend=37, lty=2, color="purple", alpha=0.4) +
+      annotate("text", x=("18"), y=35, label="Dobbs leaked", size=3) +
+  geom_segment(x=("25"), xend=("25"),y=0,yend=37, lty=2, color="red", alpha=0.4) +
+      annotate("text", x=("25"), y=35, label="Dobbs released", size=3) # now add line for when decision was actually made
+
+# now compare this to generic ballot
+gb <- read_csv("538_generic_ballot_averages_2018-2022.csv")
+
+# convert dat
+gb <- gb %>%
+  mutate(date_ = mdy(date)) %>%
+  mutate(year = substr(date_, 1, 4)) %>%
+  filter(year == 2022) %>%
+  mutate(week = strftime(date_, format = "%V")) # Jan 1 looks weird 
+
+# get avg by party and week
+dem <- gb %>%
+  filter(candidate == 'Democrats')
+library(plyr)
+x <- ddply(dem, .(week), function(z) mean(z$pct_estimate))
+x$candidate <- c('Democrats')
+x$avg_dem <- x$V1
+x <- x %>%
+  select(-V1)
+x$avg_dem <-  round(x$avg_dem , digits = 1)
+
+rep <- gb %>%
+  filter(candidate == 'Republicans')
+y <- ddply(rep, .(week), function(z) mean(z$pct_estimate))
+y$candidate <- c('Republicans')
+y$avg_rep <- y$V1
+y <- y %>%
+  select(-V1) 
+y$avg_rep <-  round(y$avg_rep, digits = 1)
+
+#put all data frames into list
+df_list <- list(gb, x, y)      
+
+#merge all data frames together
+polls_df <- df_list %>% reduce(full_join, by=c("candidate", "week"))
+
+# remove NAs
+polls_df[] <-  t(apply(polls_df, 1, function(x) c(x[!is.na(x)], x[is.na(x)])))
+
+polls_df <- polls_df %>%
+  select(-avg_rep) 
+
+polls_df$avg_support <- polls_df$avg_dem
+
+polls_df <- polls_df %>%
+  select(-avg_dem) 
+
+# keep only unique dates
+polls_df <- polls_df %>%
+  distinct(cycle, week, date_, avg_support, candidate) %>%
+  filter(week != 52)
+
+# visualize polls
+polls_df %>%
+  #group_by(candidate == 'Democrats') %>%
+  #mutate(date_ = as.Date(date_)) %>%
+  ggplot(aes(x = week, y = avg_support,
+             colour = candidate)) +
+  geom_line(aes(group=candidate), size = 0.3) + scale_color_manual(values = c("blue", "red")) + geom_point(size = 0.3) +
+    #scale_x_date(date_labels = "%b, %Y") +
+  ylab("generic ballot support") + xlab("week") +
+  labs(title = "Figure 3: Generic Ballot Support in 2022") +
+    theme_classic() + 
+  # now add line for when decision was leaked and released
+      geom_segment(x=("18"), xend=("18"),y=0,yend=33, lty=2, color="black", alpha=0.4) +
+      annotate("text", x=("18"), y=31, label="Dobbs leaked", size=2) +
+  geom_segment(x=("25"), xend=("25"),y=0,yend=33, lty=2, color="black", alpha=0.4) +
+      annotate("text", x=("25"), y=31, label="Dobbs released", size=2)
+```
+Figure 2 plots the number of articles published weekly and compares it to the days on which the Dobbs decision was leaked and ultimately released. As we can expect, the number of articles spiked around those two days, then gradually fell off again. However, after the decision was actually released, the fall-off has been much more gradual with 5-10 articles a week still being published about abortion.
+
+Figure 3 plots the generic ballot results, or the results of a nationwide partisan poll, against the same timeframe as Figure 2. This makes it quite easy to see how support for Republicans has been falling, beginning with news of Dobbs being leaked, and support for Democrats has been rising, beginning with news of Dobbs being actually released. 
+
+Nevertheless, Dobbs presents an interesting case for analysis. Drawing on what we learned in the readings this week, was abortion a referendum-level shock, or a random shock? Based on the literature, I want to say that Dobbs was random with no referendum impact because there was no economic component to it but Figure 3's generic ballot clearly shows changing opinions.
+
+In our discussion a few weeks ago with Lynn Vavreck, she said that voters do not switch their stance that often on issues of great importance to them because if the issue is really that important, they belong to the party that supports it more in the first place. For example, if there was a single-issue voter based on abortion, they would support the Democratic party anyways because that is the party that supports abortion. If the voter were a Republican who cared about abortion, it would be extremely likely that the shift regarding abortion would not be enough to make the voter a Democrat.
+
+By that logic, I do not believe that the generic ballot shift will be permanent and I do not believe that it will significantly impact the election and I do not plan on incorporating it into this week's prediction.
+
+# Model
+
+For this week's model, I compiled a data set made up of polling averages, GDP, historical results, expert predictions, incumbency, and turnout data. I created a number of different subsets based on whether the state was a battleground state and whether there was missing data. Missing data allowed me to have more years represented but also created issues with predictions.
+
+```{r national prediction, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# run a glm
+# outcome be dem vote share
+# sum cvap and sum dem votes
+
+pollhistna <- pollhistna %>% 
+              drop_na(cvap) %>%
+              group_by(year) %>% 
+              mutate(nationalcvap = sum(cvap))
+
+nationwidevote <- read.csv("house nationwide vote and seat share by party 1948-2020.csv") 
+nationwidevote <- nationwidevote %>% select(year, D_votes)
+
+pollhistna <- pollhistna %>% 
+              left_join(nationwidevote, by = "year") %>% 
+              select(-dem_avgpoll, -party, -st_cd_fips.y, -avg_rating)
+
+pollhistna$D_votes <- as.numeric(gsub(",","",pollhistna$D_votes))
+
+gdp2022 <- read.csv("GDP_quarterly_2022_good.csv")
+
+pollhistory <- pollhistna %>% 
+  inner_join(gdp2022, by = "year")
+
+train_1 <- pollhistory %>% 
+  filter(year != 2022)
+
+test_1 <- pollhistory %>% 
+  filter(year == 2022)
+
+train_model <- glm(cbind(D_votes, nationalcvap-D_votes) ~  GDP_growth_pct.y, data = train_1, family = binomial)
+
+train_model
+
+# Predicting 2022
+pred_2022_national <- predict(train_model, newdata = test_1, type = "response")[[1]]
+lower <- predict(train_model, newdata = test_1, type = "response")[[2]]
+upper <- predict(train_model, newdata = test_1, type = "response")[[3]]
+
+# r-squared is the mcfadden r-squared which requires a special formula
+
+mcf_rsquared <- (1 - train_model$deviance) / train_model$null.deviance
+mcf_rsquared 
+# with a 
+
+```

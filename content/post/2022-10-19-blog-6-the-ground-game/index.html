@@ -15,8 +15,9 @@ tags: []
 <p>This week in Election Analytics, we are talking about the ground game, or the impact that campaign operations on the ground have on election outcomes.</p>
 <p>First, looking at the literature, there are a lot of opinions and research about different goals of the ground game, but most of them focus on persuasion, convicing a registered voter to vote for your preferred candidate, or mobilization, getting a campaign’s supporters out to vote. In their research, Professors Ryan Enos and Anthony Fowler found that presidential campaigns increased turnout substantially in highly targeted states, by around 7 or 8 percentage points on average. In comparison, Joshua Kalla and David Broockman found that campaigns have extremely low persuasive effects, amounting to an average of zero. Given this evidence, I decided to focus my analysis this week on the persuasive impact of campaigns on turnout.</p>
 <p>Originally, my plan was to create two models, one for states that had expert predictions and one that did not, using this as an indicator for swing states. However, in their analysis, Enos and Fowler coded a “Battleground” binary variable to indicate whether intense campaigning occurred in a given state, based on Sides and Vavreck’s research. These also happened to be key swing states. I decided to mimic their method and code a similar variable, creating one model for battleground states based off of turnout, expert predictions and incumbency, and another for non-battleground states with just historical results and incumbency.</p>
-<p>Before we dive into the models, let’s look at the distribution of turnout. Ideally, we would look at a map with specific distribution per state, but my R crashed every time I ran the mapping simplifier code. Instead, I made a bar plot showing the turnout per state and year. This isn’t the most helpful bar plot but it does show us that Democratic turnout varies widely depending on the state and that years can have trends of more or less turnout.</p>
+<p>Before we dive into the models, let’s look at the distribution of turnout. First, I made a bar plot showing the turnout per state. This isn’t the most helpful bar plot but it shows us generally that Democratic turnout varies widely depending on the state. Next, I made a shaded state map that visually depicts turnout per state. This map is very cool because it sizes the districts relative to population. This map reflects that not many states have high voter turnout, and geography somewhat impacts whether a district will turn out, with the Northeast having high turnout and the South having low turnout.</p>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/data-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/graph-1.png" width="672" /></p>
 </div>
 <div id="models" class="section level1">
 <h1>Models</h1>
@@ -27,32 +28,4 @@ tags: []
 <h1>Conclusion</h1>
 <p>I thought that my models worked well until I reached the prediction phase and received an error about digit alignment. However, I then ran into issues with the stargazer. At this point, I am considering scrapping the district-level approach because it seems to elicit more errors than actual predictions.</p>
 <p>Based on the data that I’ve seen this week, I believe that turnout is a useful predictor for the election as it reflects campaign efforts pretty accurately. I plan to incorporate incumbency and turnout into next week’s prediction post.</p>
-<pre><code>## 
-## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-## % Date and time: Thu, Oct 20, 2022 - 02:28:27
-## \begin{table}[!htbp] \centering 
-##   \caption{Battleground vs Not Battleground} 
-##   \label{} 
-## \begin{tabular}{@{\extracolsep{5pt}}lccccc} 
-## \\[-1.8ex]\hline 
-## \hline \\[-1.8ex] 
-## Statistic &amp; \multicolumn{1}{c}{N} &amp; \multicolumn{1}{c}{Mean} &amp; \multicolumn{1}{c}{St. Dev.} &amp; \multicolumn{1}{c}{Min} &amp; \multicolumn{1}{c}{Max} \\ 
-## \hline \\[-1.8ex] 
-## \hline \\[-1.8ex] 
-## \end{tabular} 
-## \end{table} 
-## 
-## % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-## % Date and time: Thu, Oct 20, 2022 - 02:28:27
-## \begin{table}[!htbp] \centering 
-##   \caption{Battleground vs Not Battleground} 
-##   \label{} 
-## \begin{tabular}{@{\extracolsep{5pt}}lccccc} 
-## \\[-1.8ex]\hline 
-## \hline \\[-1.8ex] 
-## Statistic &amp; \multicolumn{1}{c}{N} &amp; \multicolumn{1}{c}{Mean} &amp; \multicolumn{1}{c}{St. Dev.} &amp; \multicolumn{1}{c}{Min} &amp; \multicolumn{1}{c}{Max} \\ 
-## \hline \\[-1.8ex] 
-## \hline \\[-1.8ex] 
-## \end{tabular} 
-## \end{table}</code></pre>
 </div>

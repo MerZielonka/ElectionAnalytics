@@ -16,7 +16,7 @@ First, looking at the literature, there are a lot of opinions and research about
 
 Originally, my plan was to create two models, one for states that had expert predictions and one that did not, using this as an indicator for swing states. However, in their analysis, Enos and Fowler coded a "Battleground" binary variable to indicate whether intense campaigning occurred in a given state, based on Sides and Vavreck's research. These also happened to be key swing states. I decided to mimic their method and code a similar variable, creating one model for battleground states based off of turnout, expert predictions and incumbency, and another for non-battleground states with just historical results and incumbency.
 
-Before we dive into the models, let's look at the distribution of turnout. Ideally, we would look at a map with specific distribution per state, but my R crashed every time I ran the mapping simplifier code. Instead, I made a bar plot showing the turnout per state and year. This isn't the most helpful bar plot but it does show us that Democratic turnout varies widely depending on the state and that years can have trends of more or less turnout. 
+Before we dive into the models, let's look at the distribution of turnout. First, I made a bar plot showing the turnout per state. This isn't the most helpful bar plot but it  shows us generally that Democratic turnout varies widely depending on the state. Next, I made a shaded state map that visually depicts turnout per state. This map is very cool because it sizes the districts relative to population. This map reflects that not many states have high voter turnout, and geography somewhat impacts whether a district will turn out, with the Northeast having high turnout and the South having low turnout.
 
 ```{r setup, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -34,6 +34,7 @@ library(ggmap)
 library(rmapshaper)
 library(blogdown)
 library(tinytex)
+library(donnermap)
 ```
 
 ```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
@@ -92,8 +93,29 @@ CVAP <- CVAP %>%
     )) %>% 
   select("district", "state", "cvap", "year")
 
+CVAP <- CVAP %>% 
+  mutate(state = case_when(
+         state == "NewHampshire" ~ "New Hampshire", 
+         state == "NorthCarolina" ~ "North Carolina", 
+         state == "NewJersey" ~ "New Jersey", 
+         state == "NewMexico" ~ "New Mexico", 
+         state == "NewYork" ~ "New York", 
+         state == "NorthDakota" ~ "North Dakota", 
+         state == "RhodeIsland" ~ "Rhode Island", 
+         state == "SouthCarolina" ~ "South Carolina", 
+         state == "SouthDakota" ~ "South Dakota", 
+         state == "WestVirginia" ~ "West Virginia",
+         TRUE ~ state))
+
 CVAP$district <- as.integer(CVAP$district)
-    
+
+CVAP2022 <- CVAP %>% 
+  filter(year == 2020) %>% 
+  mutate(year = 2022)
+
+CVAP <- CVAP %>% 
+  full_join(CVAP2022)
+
 histcvap <- left_join(demhist, CVAP, by = c("district", "state", "year"))
 
 histcvap <- histcvap %>%  mutate(demturnout = DemVotes/cvap)
@@ -115,31 +137,58 @@ histexpcvap <- histexpcvap %>%
     TRUE ~ "0"))
 histexpcvap$battleground <- as.numeric(histexpcvap$battleground)
 
-# turnoutgraph <- histexpcvap %>% 
-#  rename(DISTRICT = district, STATENAME = state)
-
-# turnoutgraph$DISTRICT <- as.character(turnoutgraph$DISTRICT)
-
-# cd116 <- st_read("districtShapes/districts114.shp", quiet = TRUE)
-
-# cd116 <- cd116 %>% left_join(turnoutgraph, by=c("DISTRICT", "STATENAME")) %>% filter(STATENAME != "Alaska", STATENAME != "Hawaii")
-# districts_simp <- rmapshaper::ms_simplify(cd116, keep = 0.01)
-
-# ggplot() +
-#   geom_sf(data = districts_simp, aes(fill = turnout, geometry = geometry),
-#          inherit.aes = FALSE, alpha = 0.9) +
-#  scale_fill_gradient(low = "white", high = "blue") +
-#  theme_void() + 
-#  labs(title = "Democratic Turnout, 2012-2018", col = "Dem") +
-#  theme(axis.title.x=element_blank(),
-#      axis.text.x=element_blank(),
-#      axis.ticks.x=element_blank(),
-#      axis.title.y=element_blank(),
-#      axis.text.y=element_blank(),
-#      axis.ticks.y=element_blank())
-
 barplot(histexpcvap$demturnout, main = "Democratic Turnout by State", ylab = "Turnout")
-    
+
+```
+```{r new data, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+write.csv(histexpcvap, "/Users/meredithzielonka/Documents/College/2022/Fall/GOV1347/R-Projects/ElectionAnalytics/histexpcvap.csv")
+
+```
+
+```{r graph, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+
+library(donnermap)
+
+# For graphing
+library(ggplot2)
+library(sf)
+library(ggthemes)
+library(dplyr)
+library(scales)
+
+# ggplot(cd_shp) + geom_sf() + theme_map() +
+#  labs(caption = "Map Source: http://dkel.ec/map")
+
+cd_shp <- cd_shp %>%
+  rename(district = CDLABEL, state = STATENAME) %>% 
+  mutate(district = case_when(
+    state == "Wyoming" ~ "0",
+    state == "Vermont" ~ "0",
+    state == "South Dakota" ~ "0",
+    state == "North Dakota" ~ "0",
+    state == "Montana" ~ "0",
+    state == "Delaware" ~ "0",
+    state == "Alaska" ~ "0",
+    TRUE ~ district
+    ))
+
+histexpcvap$district <- as.character(histexpcvap$district)
+
+cd_race <- left_join(cd_shp, histexpcvap, by = c("district", "state")) %>% filter(year != 2022)
+
+# plot
+ggplot(cd_race) +
+  geom_sf(data = st_shp, fill = "transparent", size = 0.5) +
+  geom_sf(aes(fill = demturnout), size = 0.1) +
+  scale_fill_viridis_b(
+    "Democratic Turnout", 
+    na.value = "white", 
+    breaks = seq(0, 1, 0.1), 
+    labels = percent_format(accuracy = 1)) +
+  theme_map() +
+  labs(caption = "Map Source: http://dkel.ec/map.") +
+  theme(legend.position = c(0.75, 0.1))
+
 ```
 
 # Models
@@ -159,11 +208,11 @@ Based on the data that I've seen this week, I believe that turnout is a useful p
 
 databattle <- histexpcvap %>% 
     filter(battleground == 1) %>% 
-    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, demturnout)
+    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, cvap, DemVotes, avg_rating)
 
 datanobattle <- histexpcvap %>% 
     filter(battleground == 0) %>% 
-    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, demturnout)
+    select(year, state, district, DemVotesMajorPercent, president_party, demincumbent, cvap, DemVotes, avg_rating)
 ```
 
 ```{r training, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
@@ -171,15 +220,16 @@ datanobattle <- histexpcvap %>%
 # training with battle
 train_data_battle <- databattle %>% 
   filter(year != 2022) %>% 
-  drop_na() %>% 
   group_by(state, district) %>% 
   filter(n() > 1) %>% # Filtering out single data rows
+  drop_na(avg_rating) %>% 
   group_nest() %>% 
   mutate(data = map(data, ~unnest(., cols = c())))
 
 test_data_battle <- databattle %>% 
   filter(year == 2022) %>% 
   group_by(state, district) %>% 
+    drop_na(avg_rating) %>% 
   group_nest() %>% 
   mutate(data = map(data, ~unnest(., cols = c())))
 
@@ -187,49 +237,14 @@ train_data_nobat <- datanobattle %>%
   filter(year != 2022) %>% 
   group_by(state, district) %>% 
   filter(n() > 1) %>% # Filtering out single data rows
+  drop_na(avg_rating) %>% 
   group_nest() %>% 
   mutate(data = map(data, ~unnest(., cols = c())))
 
 test_data_nobat <- datanobattle %>% 
   filter(year == 2022) %>% 
   group_by(state, district) %>% 
+  drop_na(avg_rating) %>% 
   group_nest() %>% 
   mutate(data = map(data, ~unnest(., cols = c())))
-```
-
-```{r models, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
-## BATTLEGROUND
-battlemodels <- train_data_battle %>% 
-  mutate(model = map(data, ~lm(DemVotesMajorPercent ~ demincumbent + demturnout, data = .x))) %>% 
-  select(-data)
-
-# Extracting results
-batmodel_results <- battlemodels %>% 
-  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
-
-## NO BATTLEGROUND
-models <- train_data_nobat %>% 
-  mutate(model = map(data, ~lm(DemVotesMajorPercent ~  demincumbent, data = .x))) %>% 
-  select(-data)
-
-# Extracting results
-model_results <- models %>% 
-  mutate(r_squared = map_dbl(model, ~summary(.x)$r.squared))
-
-stargazer(battlemodels, models, title="Battleground vs Not Battleground")
-```
-
-```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
-
-# Predicting 2022 Battlegrounds
-# pred_2022_battle <- test_data_battle %>%
-#  inner_join(battlemodels, by = c("state", "district")) %>% 
-#  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
-#  select(state, district, pred)
-
-# Predicting 2022 Not Battlegrounds
-#pred_2022_notbat <- test_data_nobat %>%
-#  inner_join(models, by = c("state", "district")) %>%
-#  mutate(pred = map_dbl(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y)))) %>%
-#  select(state, district, pred)
 ```

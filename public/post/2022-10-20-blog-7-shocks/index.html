@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+		
+		
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<title>Blog 7: Shocks &middot; Meredith Zielonka</title>
+
+		
+		<link rel="stylesheet" href="/css/style.css">
+		<link rel="stylesheet" href="/css/fonts.css">
+		
+		<link rel="icon" href="/favicon.ico"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+		
+		<link href="" rel="alternate" type="application/rss+xml" title="Meredith Zielonka" />
+
+		<script src="/js/darkmode.js"></script>
+	</head>
+
+    <body>
+        		<nav class="nav">
+			<div class="nav-container">
+				<a href="/">
+					
+						<h2 class="nav-title">Meredith Zielonka</h2>
+					
+				</a>
+				<ul>
+    
+    
+</ul>
+			</div>
+		</nav>
+
+        <div id="darkModeToggle" onclick="toggleDarkMode()">
+  &#9680; 
+</div>
+
+        
+
+<main>
+	
+
+
+        <div class="post">
+		<div class="post-info">
+    <span>Written by</span>
+        Meredith Zielonka
+        <br>
+        <span>on&nbsp;</span><time datetime="2022-10-20 00:00:00 &#43;0000 UTC">October 20, 2022</time>
+</div>
+
+		<h1 class="post-title">Blog 7: Shocks</h1>
+<div class="post-line"></div>
+
+		
+
+		
+
+
+<p><em>This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.</em></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This week in Election Analytics, two weeks out from the election, we are talking about “shocks,” or significant events that have the capacity to change the outcome of an election.</p>
+<p>It has been established that voters evaluate incumbents based on past performance, but when reviewing shocks, do voters take them into account when making decisions? In our readings about shocks, two things became clear. First, Healy and Malhotra found that voters do punish incumbents, like many have theorized, except only for economic damages (Healy and Malhotra 2010). For example, incumbents would be punished for lack of compensation from tornado damage, not that the tornado happened in the first place. This suggests some amount of rationality among voters, an idea that usually is not that prevalent. Avina and Sevi back up this claim in their paper on the impact of Covid-19 on the 2020 election. When investigating whether Trump would have won had Covid not happened, they found that while the margin of the election may have been a little closer, Biden still would have won (Avina and Sevi 2021). This supports the idea that voting is a referendum on the actions and responses of elected officials rather than random events which occur outside their control. Fowler and Hall support this notion, finding that shark attacks, generally known to be extremely coincidental events with little possible response from officials, have negligible election influence (Fowler and Hall 2018). As a result, we can concur that voters are somewhat rational and do not punish incumbents for random or unlikely events, however if they perceive there to be a possible response, they will use that as a referendum on the incumbent.</p>
+<p>In the last year, one of the largest shocks was the Dobbs Supreme Court decision related to abortion rights. In class we looked at appearances of the word “Dobbs” in 2022 New York Times articles but for my assignment, I’d like to broaden that to include all mentions of the word “abortion.”</p>
+</div>
+<div id="graphs" class="section level1">
+<h1>Graphs</h1>
+<p>After making some visualizations, it becomes easier to see the impact of discussion of abortion on the nationwide conversation. Figure 1 is a daily breakdown of the number of articles per day which mention abortion. This clearly shows that the number is almost always higher than two and sometimes hits five articles mentioning abortion per day. According to their website, the New York Times publishes roughly 150-200 articles per day across all of their platforms and sections. For abortion to be mentioned in 2.5% to 3% of their daily articles is a lot.</p>
+<pre><code>## [1] 2105</code></pre>
+<pre><code>## There were 2105 hits for the search term abortion during 2022 to date</code></pre>
+<pre><code>## [1] 250</code></pre>
+<pre><code>##  [1] &quot;abstract&quot;         &quot;web_url&quot;          &quot;snippet&quot;          &quot;lead_paragraph&quot;  
+##  [5] &quot;print_section&quot;    &quot;print_page&quot;       &quot;source&quot;           &quot;multimedia&quot;      
+##  [9] &quot;headline&quot;         &quot;keywords&quot;         &quot;pub_date&quot;         &quot;document_type&quot;   
+## [13] &quot;news_desk&quot;        &quot;section_name&quot;     &quot;subsection_name&quot;  &quot;byline&quot;          
+## [17] &quot;type_of_material&quot; &quot;_id&quot;              &quot;word_count&quot;       &quot;uri&quot;</code></pre>
+<pre><code>## [1] 250</code></pre>
+<pre><code>##  [1] &quot;abstract&quot;         &quot;web_url&quot;          &quot;snippet&quot;          &quot;lead_paragraph&quot;  
+##  [5] &quot;print_section&quot;    &quot;print_page&quot;       &quot;source&quot;           &quot;multimedia&quot;      
+##  [9] &quot;headline&quot;         &quot;keywords&quot;         &quot;pub_date&quot;         &quot;document_type&quot;   
+## [13] &quot;news_desk&quot;        &quot;section_name&quot;     &quot;subsection_name&quot;  &quot;byline&quot;          
+## [17] &quot;type_of_material&quot; &quot;_id&quot;              &quot;word_count&quot;       &quot;uri&quot;</code></pre>
+<p><img src="http://example.org/post/2022-10-20-blog-7-shocks/index_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="http://example.org/post/2022-10-20-blog-7-shocks/index_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre><code>## [1] &quot;2022-08-03&quot; &quot;2022-03-04&quot; &quot;2022-05-19&quot; &quot;2022-07-06&quot; &quot;2022-05-06&quot;
+## [6] &quot;2022-10-10&quot;</code></pre>
+<pre><code>## [1] &quot;31&quot; &quot;09&quot; &quot;20&quot; &quot;27&quot; &quot;18&quot; &quot;41&quot;</code></pre>
+<p><img src="http://example.org/post/2022-10-20-blog-7-shocks/index_files/figure-html/unnamed-chunk-1-3.png" width="672" /><img src="http://example.org/post/2022-10-20-blog-7-shocks/index_files/figure-html/unnamed-chunk-1-4.png" width="672" />
+Figure 2 plots the number of articles published weekly and compares it to the days on which the Dobbs decision was leaked and ultimately released. As we can expect, the number of articles spiked around those two days, then gradually fell off again. However, after the decision was actually released, the fall-off has been much more gradual with 5-10 articles a week still being published about abortion.</p>
+<p>Figure 3 plots the generic ballot results, or the results of a nationwide partisan poll, against the same timeframe as Figure 2. This makes it quite easy to see how support for Republicans has been falling, beginning with news of Dobbs being leaked, and support for Democrats has been rising, beginning with news of Dobbs being actually released.</p>
+<p>Nevertheless, Dobbs presents an interesting case for analysis. Drawing on what we learned in the readings this week, was abortion a referendum-level shock, or a random shock? Based on the literature, I want to say that Dobbs was random with no referendum impact because there was no economic component to it but Figure 3’s generic ballot clearly shows changing opinions.</p>
+<p>In our discussion a few weeks ago with Lynn Vavreck, she said that voters do not switch their stance that often on issues of great importance to them because if the issue is really that important, they belong to the party that supports it more in the first place. For example, if there was a single-issue voter based on abortion, they would support the Democratic party anyways because that is the party that supports abortion. If the voter were a Republican who cared about abortion, it would be extremely likely that the shift regarding abortion would not be enough to make the voter a Democrat.</p>
+<p>By that logic, I do not believe that the generic ballot shift will be permanent and I do not believe that it will significantly impact the election and I do not plan on incorporating it into this week’s prediction.</p>
+</div>
+<div id="model" class="section level1">
+<h1>Model</h1>
+<p>For this week’s model, I compiled a data set made up of polling averages, GDP, historical results, expert predictions, incumbency, and turnout data. I created a number of different subsets based on whether the state was a battleground state and whether there was missing data. Missing data allowed me to have more years represented but also created issues with predictions.</p>
+<pre><code>## 
+## Call:  glm(formula = cbind(D_votes, nationalcvap - D_votes) ~ GDP_growth_pct.y, 
+##     family = binomial, data = train_1)
+## 
+## Coefficients:
+##      (Intercept)  GDP_growth_pct.y  
+##        -3.110179          0.005513  
+## 
+## Degrees of Freedom: 8723 Total (i.e. Null);  8722 Residual
+## Null Deviance:       2.949e+10 
+## Residual Deviance: 2.901e+10     AIC: 2.901e+10</code></pre>
+<pre><code>## [1] -0.9837692</code></pre>
+</div>
+
+
+		
+	</div>
+
+	<div class="pagination">
+		<a href="/post/2022-10-19-blog-6-the-ground-game/" class="left arrow">&#8592;</a>
+		<a href="/post/2022-11-03-final-election-prediction/" class="right arrow">&#8594;</a>
+
+		<a href="#" class="top">Top</a>
+	</div>
+</main>
+
+
+        		<footer>
+			
+			<span>
+			&copy; <time datetime="2022-11-05 22:25:32.10418 -0400 EDT m=&#43;0.596746119">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			</span>
+		</footer>
+
+    </body>
+</html>
