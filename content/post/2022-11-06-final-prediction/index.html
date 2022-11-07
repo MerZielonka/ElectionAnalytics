@@ -21,63 +21,32 @@ tags: []
 <p>I have been having some trouble throughout the semester with my models becoming overly complicated with too many variables and not enough data, so I used similar variables in my model, adding in GDP and mimicking Abramowitz’s formula for both parties, not just Republicans like he did in 2018.</p>
 <p>In order to create a dataset to fit these needs, I started with historical data of nationwide vote and seat share. I also used a dataset of generic ballot results, I then filtered that data down to only polls after September 1st in order to get results closer to the election. I joined the historical data and the generic ballot data, and created variables for the generic ballot differences. Finally, I joined in GDP data and created two sets of data, one of all election years and one of only midterm election years.</p>
 <p>I decided to use a simple linear model. I felt that the purpose of this week’s exercise was presentation and more complex models are much harder to understand on a widespread basis. Linear models convey information more simply and require fewer mathematical tricks to get to relatively similar results.</p>
-<p>My model formula looked like the following, and I swapped out the party and dataset accordingly, ending up with two different types of model and one set for each party.</p>
+<p>My model formula to find the seat share looked like the following, and I swapped out the party and dataset accordingly, ending up with two different types of model and one set for each party.</p>
 <p>lm(PARTY_seats ~ PARTYballotdif + presparty + PARTY_seats_before + GDP_growth_pct, data = ELECTIONdata)</p>
 </div>
 <div id="coefficients" class="section level1">
 <h1>Coefficients</h1>
-<pre><code>## 
-## Two-Party Seat Share Models
-## ===========================================================================================================================
-##                                                                     Dependent variable:                                    
-##                                 -------------------------------------------------------------------------------------------
-##                                        D_seats                R_seats                D_seats                R_seats        
-##                                     All Elections          All Elections        Midterm Elections      Midterm Elections   
-##                                          (1)                    (2)                    (3)                    (4)          
-## ---------------------------------------------------------------------------------------------------------------------------
-## Dem Generic Ballot Lead/Deficit    2.454*** (0.274)                              2.418*** (0.412)                          
-## Rep Generic Ballot Lead/Deficit                           2.405*** (0.268)                              2.465*** (0.409)   
-## President&#39;s Party                 -15.550*** (3.976)     14.023*** (3.820)      -24.342*** (7.771)      21.894** (7.375)   
-## Dem Seats Before Election          0.311*** (0.071)                              0.380*** (0.119)                          
-## Rep Seats Before Election                                 0.326*** (0.070)                              0.378*** (0.117)   
-## GDP Growth                        -1.477*** (0.507)        -0.248 (0.484)         -0.556 (3.075)         -1.584 (2.939)    
-## Constant                         150.219*** (16.065)    145.641*** (15.231)    136.163*** (25.681)    134.277*** (26.850)  
-## ---------------------------------------------------------------------------------------------------------------------------
-## Observations                              36                     36                     18                     18          
-## R2                                      0.877                  0.880                  0.891                  0.894         
-## Adjusted R2                             0.861                  0.865                  0.857                  0.862         
-## Residual Std. Error                11.344 (df = 31)       10.829 (df = 31)       11.716 (df = 13)       11.359 (df = 13)   
-## F Statistic                     55.323*** (df = 4; 31) 57.036*** (df = 4; 31) 26.555*** (df = 4; 13) 27.467*** (df = 4; 13)
-## ===========================================================================================================================
-## Note:                                                                                           *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 204.7144 180.6889 228.7399</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 225.5925 202.6436 248.5414</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 197.8879 169.8948 225.8811</code></pre>
-<pre><code>##        fit      lwr      upr
-## 1 231.6727 204.5896 258.7558</code></pre>
+<p><img src="imgs/stargazer.png" /></p>
 <p>These are quite promising results. Every variable is statistically significant at the 5% significance level except for GDP, and both the generic ballot and number of seats held before the election are significant at the 1% level. The adjusted r-squareds are all strong in the mid 80s, at .861 for Democrats and .865 for Republicans when we look at the data for all elections.</p>
 <p>When interpreting the coefficients, both generic ballot lead/deficit and seats before the election seem to change at similar rates for both parties. For every additional point lead in the generic ballot, the corresponding party is projected to gain about two and half seats in congress. For every additional seat held before the election, the party is projected to gain about a third of a seat.</p>
-<p>The coefficient of president’s party reflects the concept of incumbent presidents’ parties being punished, particularly during midterms. In coding the variable, I designated +1 to Democratic presidents and -1 to Republican presidents. This reflects that if the president is a Democrat, the party is expected to lose 15 seats. In midterm years, this is exacerbated to 24 seats.</p>
+<p>The coefficient of president’s party reflects the concept of incumbent presidents’ parties being punished, particularly during midterms. In coding the variable, I designated +1 to Democratic presidents and 0 to Republican presidents. This conveys through the coefficients that if the president is a Democrat, the party is expected to lose 15 seats. In midterm years, this is exacerbated to 24 seats.</p>
 <p>Finally, GDP growth is a bit wild. First, the only statistically significant coefficient for GDP is for Democrats in all election years. It indicates that for every additional percentage point of GDP growth, the Democrats lose 1.5 seats in the House. This doesn’t necessarily make sense given the literature that we have read and the results of my model earlier this semester that was solely based on GDP. Given the statistical insignificance of the other GDP coefficients, this variable should not be considered helpful.</p>
 </div>
 <div id="model-validation" class="section level1">
 <h1>Model Validation</h1>
 <div id="in-sample-fit" class="section level2">
 <h2>In-Sample Fit</h2>
-<p>To evaluate my model, there are two types of testing we can conduct, in-sample fit and out-of-sample fit. In-sample fit uses the data we already have through looking at the r-squareds and comparing the in-sample error, or how often a prediction on historical data matches the historical result. I examined the r-squareds of my model and found that they are relatively strong, ranging around .86. To compare the in-sample error, I graphed historical results versus predictions.</p>
+<p>To evaluate my model, there are two types of testing we can conduct, in-sample fit and out-of-sample fit. In-sample fit uses the data we already have by looking at the r-squareds and comparing the in-sample error, defined as how often a prediction on historical data matches the actual historical result. I examined the r-squareds of my model and found that they are relatively strong, ranging around .86. To compare the in-sample error, I graphed historical results versus predictions for each model.</p>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
 <pre><code>## [1] 10.52686</code></pre>
 <pre><code>## [1] 10.04894</code></pre>
 <pre><code>## [1] 9.956888</code></pre>
 <pre><code>## [1] 9.653612</code></pre>
-<p>Based on the in-sample error graphs, the models based on more data points, i.e. all the elections instead of just midterms, seem to hit more historical data points and are more trustworthy. Finally, I calculated the mean squared error for each model. They all ended up around 10, so the models should be relatively comparable.</p>
+<p>Based on the in-sample error graphs, the models containing on more data points, i.e. all of the elections instead of just midterms, seem to hit more historical data points and are more trustworthy. Afterwards, I calculated the mean squared error, a numerical summary of the difference between historical data and prediction, for each model. They all ended up around 10, so the models should be relatively comparable.</p>
 </div>
 <div id="out-of-sample-fit" class="section level2">
 <h2>Out-of-Sample Fit</h2>
-<p>In order to conduct out-of-sample fit tests, we withhold some observation then try to predict its result.</p>
+<p>Out-of-sample fit tests are very similar to in-sample fit tests except that we withhold one historical observation from the data set in order to try to predict its result.</p>
 <pre><code>##        35 
 ## -8.733373</code></pre>
 <pre><code>##       35 
@@ -86,7 +55,7 @@ tags: []
 ## -10.12312</code></pre>
 <pre><code>##       18 
 ## 9.224524</code></pre>
-<p>The out-of-sample testing reveals that on Democrats, the models underpredict the results and on Republicans, the models overpredict the results. I suspect this has to do with the president’s party variable. This is something to consider when it comes time to decide which model to choose for my final prediction.</p>
+<p>The numbers above represent the predicted value minus the true value for each model. This out-of-sample testing reveals that, for Democrats, the models underpredict the results, making the true value larger than the predicted value and yielding the negative numbers. For Republicans, the models overpredict the results in the opposite phenomenon. This is something to consider when it comes time to decide which model to choose for my final prediction because if I have a choice, the model with closer, less dramatic differences might be more correct.</p>
 </div>
 </div>
 <div id="prediction-intervals-and-uncertainty" class="section level1">
@@ -97,10 +66,11 @@ tags: []
 ## 3      Dem Midterms 197.8879 169.8948 225.8811
 ## 4      Rep Midterms 231.6727 204.5896 258.7558</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" />
-These are relatively wide intervals of prediction, proving that predicting elections is really not a science.</p>
+This graph depicts the fit, lower and upper bounds of each model’s prediction as shown in the table immediately before. These are relatively wide intervals of prediction. As a result, no matter the accuracy of the model, there is still enough overlap of the Democratic and Republican intervals that the party holding a majority of seats could flip.</p>
 </div>
 <div id="final-prediction-and-conclusion" class="section level1">
 <h1>Final Prediction and Conclusion</h1>
-<p>Based on all of the investigations I have just completed regarding the accuracy of my models, I’ve decided to use the models based on all of the historical election data, not just midterms. Not only does that model have a smaller interval of prediction but it performed better on the out-of-sample fit test. While the adjusted r-squareds were also higher, it was by such a small amount (0.003) that it seems insignificant. They also had marginally smaller residual standard errors. Overall, I believe that the predictions that have more training data are more reliable. Using the fitted values, I predict that <em>the Democratic party will win 205 seats and the Republican party will win 225 seats in the 2022 midterms.</em></p>
+<p>Based on all of the investigations I have just completed regarding the accuracy of my models, I have decided to use the models based on all of the historical election data, not just midterms. Not only does that model have a smaller interval of prediction but it performed better on the out-of-sample fit test. While the adjusted r-squareds were also higher, it was by such a small amount (0.003) that it seems insignificant. They also had marginally smaller residual standard errors. Overall, I believe that the predictions that have more training data are more reliable.</p>
+<p>Because I used separate models for Democrats and Republicans, their predicted seat totals do not add up to 435. In order to reach that number for our class predictions, I will rely on the Republican models and calculate Democratic seat share using simple subtraction, leading to <em>a result of 210 seats for the Democrats and 225 seats for the Republicans.</em> When using the fitted values from both my Republican and Democrat models, however, I predict that <em>the Democratic party will win 205 seats and the Republican party will win 225 seats in the 2022 midterms.</em></p>
 <p>Just because my final predictions are in doesn’t mean that this is my last blog post. I’ll be back for a reflection on the election results and the quality of my model soon!</p>
 </div>

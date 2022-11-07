@@ -116,40 +116,40 @@ hist <- hist %>%
   mutate(presparty = case_when(
          year == 1950 ~ "1",
          year == 1952 ~ "1",
-         year == 1954 ~ "-1",
-         year == 1956 ~ "-1",
-         year == 1958 ~ "-1",
-         year == 1960 ~ "-1",
+         year == 1954 ~ "0",
+         year == 1956 ~ "0",
+         year == 1958 ~ "0",
+         year == 1960 ~ "0",
          year == 1962 ~ "1",
          year == 1964 ~ "1",
          year == 1966 ~ "1",
          year == 1968 ~ "1",
-         year == 1970 ~ "-1",
-         year == 1972 ~ "-1",
-         year == 1974 ~ "-1",
-         year == 1976 ~ "-1",
+         year == 1970 ~ "0",
+         year == 1972 ~ "0",
+         year == 1974 ~ "0",
+         year == 1976 ~ "0",
          year == 1978 ~ "1",
          year == 1980 ~ "1",
-         year == 1982 ~ "-1",
-         year == 1984 ~ "-1",
-         year == 1986 ~ "-1",
-         year == 1988 ~ "-1",
-         year == 1990 ~ "-1",
-         year == 1992 ~ "-1",
+         year == 1982 ~ "0",
+         year == 1984 ~ "0",
+         year == 1986 ~ "0",
+         year == 1988 ~ "0",
+         year == 1990 ~ "0",
+         year == 1992 ~ "0",
          year == 1994 ~ "1",
          year == 1996 ~ "1",
          year == 1998 ~ "1",
          year == 2000 ~ "1",
-         year == 2002 ~ "-1",
-         year == 2004 ~ "-1",
-         year == 2006 ~ "-1",
-         year == 2008 ~ "-1",
+         year == 2002 ~ "0",
+         year == 2004 ~ "0",
+         year == 2006 ~ "0",
+         year == 2008 ~ "0",
          year == 2010 ~ "1",
          year == 2012 ~ "1",
          year == 2014 ~ "1",
          year == 2016 ~ "1",
-         year == 2018 ~ "-1",
-         year == 2020 ~ "-1",
+         year == 2018 ~ "0",
+         year == 2020 ~ "0",
          year == 2022 ~ "1")) 
 
 hist$D_votes <- as.numeric(gsub(",","",hist$D_votes))
@@ -210,7 +210,7 @@ In order to create a dataset to fit these needs, I started with historical data 
 
 I decided to use a simple linear model. I felt that the purpose of this week's exercise was presentation and more complex models are much harder to understand on a widespread basis. Linear models convey information more simply and require fewer mathematical tricks to get to relatively similar results. 
 
-My model formula looked like the following, and I swapped out the party and dataset accordingly, ending up with two different types of model and one set for each party.
+My model formula to find the seat share looked like the following, and I swapped out the party and dataset accordingly, ending up with two different types of model and one set for each party.
 
 lm(PARTY_seats ~  PARTYballotdif + presparty + PARTY_seats_before + GDP_growth_pct, data = ELECTIONdata)
 
@@ -262,32 +262,34 @@ train_modelreplm_midterm <- lm(R_seats ~  repballotdif + presparty + R_seats_bef
 
 # Stargazer
 
-stargazer(train_modeldemlm, train_modelreplm, train_modeldemlm_midterm, train_modelreplm_midterm, header=FALSE, type='text', no.space = TRUE, column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE, title = "Two-Party Seat Share Models",
-          covariate.labels = c("Dem Generic Ballot Lead/Deficit", "Rep Generic Ballot Lead/Deficit", "President's Party", "Dem Seats Before Election", "Rep Seats Before Election", "GDP Growth"), column.labels = c("All Elections", "All Elections", "Midterm Elections", "Midterm Elections"))
+# stargazer(train_modeldemlm, train_modelreplm, train_modeldemlm_midterm, train_modelreplm_midterm, header=FALSE, type='text', no.space = TRUE, column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE, title = "Two-Party Seat Share Models",
+#          covariate.labels = c("Dem Generic Ballot Lead/Deficit", "Rep Generic Ballot Lead/Deficit", "President's Party", "Dem Seats Before Election", "Rep Seats Before Election", "GDP Growth"), column.labels = c("All Elections", "All Elections", "Midterm Elections", "Midterm Elections"))
 
 # Predicting 2022 - based on all years
 pred_2022_demlm <- predict(train_modeldemlm, newdata = test_lm, interval = "prediction")
 pred_2022_replm <- predict(train_modelreplm, newdata = test_lm, interval = "prediction")
 
-print(pred_2022_demlm)
-print(pred_2022_replm)
+# print(pred_2022_demlm)
+# print(pred_2022_replm)
 
 # Predicting 2022 - based on midterm years
 pred_2022_demlm_mid <- predict(train_modeldemlm_midterm, newdata = test_lm_midterm, interval = "prediction")
 pred_2022_replm_mid <- predict(train_modelreplm_midterm, newdata = test_lm_midterm, interval = "prediction")
 
-print(pred_2022_demlm_mid)
-print(pred_2022_replm_mid)
+# print(pred_2022_demlm_mid)
+# print(pred_2022_replm_mid)
 
 # lowerlm <- predict(train_model, newdata = test_1, type = "response")[[2]]
 # upperlm <- predict(train_model, newdata = test_1, type = "response")[[3]]
 
 ```
+![](imgs/stargazer.png)
+
 These are quite promising results. Every variable is statistically significant at the 5% significance level except for GDP, and both the generic ballot and number of seats held before the election are significant at the 1% level. The adjusted r-squareds are all strong in the mid 80s, at .861 for Democrats and .865 for Republicans when we look at the data for all elections. 
 
 When interpreting the coefficients, both generic ballot lead/deficit and seats before the election seem to change at similar rates for both parties. For every additional point lead in the generic ballot, the corresponding party is projected to gain about two and half seats in congress. For every additional seat held before the election, the party is projected to gain about a third of a seat. 
 
-The coefficient of president's party reflects the concept of incumbent presidents' parties being punished, particularly during midterms. In coding the variable, I designated +1 to Democratic presidents and -1 to Republican presidents. This reflects that if the president is a Democrat, the party is expected to lose 15 seats. In midterm years, this is exacerbated to 24 seats. 
+The coefficient of president's party reflects the concept of incumbent presidents' parties being punished, particularly during midterms. In coding the variable, I designated +1 to Democratic presidents and 0 to Republican presidents. This conveys through the coefficients that if the president is a Democrat, the party is expected to lose 15 seats. In midterm years, this is exacerbated to 24 seats.
 
 Finally, GDP growth is a bit wild. First, the only statistically significant coefficient for GDP is for Democrats in all election years. It indicates that for every additional percentage point of GDP growth, the Democrats lose 1.5 seats in the House. This doesn't necessarily make sense given the literature that we have read and the results of my model earlier this semester that was solely based on GDP. Given the statistical insignificance of the other GDP coefficients, this variable should not be considered helpful.
 
@@ -295,7 +297,7 @@ Finally, GDP growth is a bit wild. First, the only statistically significant coe
 
 ## In-Sample Fit
 
-To evaluate my model, there are two types of testing we can conduct, in-sample fit and out-of-sample fit. In-sample fit uses the data we already have through looking at the r-squareds and comparing the in-sample error, or how often a prediction on historical data matches the historical result. I examined the r-squareds of my model and found that they are relatively strong, ranging around .86. To compare the in-sample error, I graphed historical results versus predictions.
+To evaluate my model, there are two types of testing we can conduct, in-sample fit and out-of-sample fit. In-sample fit uses the data we already have by looking at the r-squareds and comparing the in-sample error, defined as how often a prediction on historical data matches the actual historical result. I examined the r-squareds of my model and found that they are relatively strong, ranging around .86. To compare the in-sample error, I graphed historical results versus predictions for each model.
 
 ```{r}
 par(mfrow=c(2,2))
@@ -352,11 +354,11 @@ mse_g_replm_mid <- mean((train_modelreplm_midterm$model$R_seats -
                  train_modelreplm_midterm$fitted.values)^2)
 sqrt(mse_g_replm_mid)
 ```
-Based on the in-sample error graphs, the models based on more data points, i.e. all the elections instead of just midterms, seem to hit more historical data points and are more trustworthy. Finally, I calculated the mean squared error for each model. They all ended up around 10, so the models should be relatively comparable.
+Based on the in-sample error graphs, the models containing on more data points, i.e. all of the elections instead of just midterms, seem to hit more historical data points and are more trustworthy. Afterwards, I calculated the mean squared error, a numerical summary of the difference between historical data and prediction, for each model. They all ended up around 10, so the models should be relatively comparable.
 
 ## Out-of-Sample Fit
 
-In order to conduct out-of-sample fit tests, we withhold some observation then try to predict its result. 
+Out-of-sample fit tests are very similar to in-sample fit tests except that we withhold one historical observation from the data set in order to try to predict its result. 
 
 ```{r}
 # all D
@@ -389,7 +391,7 @@ outsamp_pred4 <- predict(outsamp_mod4,
 outsamp_true4 <- train_lm_midterm$R_seats[train_lm_midterm$year == 2018] 
 outsamp_pred4 - outsamp_true4
 ```
-The out-of-sample testing reveals that on Democrats, the models underpredict the results and on Republicans, the models overpredict the results. I suspect this has to do with the president's party variable. This is something to consider when it comes time to decide which model to choose for my final prediction.
+The numbers above represent the predicted value minus the true value for each model. This out-of-sample testing reveals that, for Democrats, the models underpredict the results, making the true value larger than the predicted value and yielding the negative numbers. For Republicans, the models overpredict the results in the opposite phenomenon. This is something to consider when it comes time to decide which model to choose for my final prediction because if I have a choice, the model with closer, less dramatic differences might be more correct.
 
 # Prediction Intervals and Uncertainty
 
@@ -418,10 +420,12 @@ ggplot(data = interval, aes(x = Model, y = Fit, col = Model)) +
   scale_color_manual(values = c("Blue","Blue","Red","Red")) +
   geom_hline(yintercept = 217, linetype = 'dashed')
 ```
-These are relatively wide intervals of prediction, proving that predicting elections is really not a science. 
+This graph depicts the fit, lower and upper bounds of each model's prediction as shown in the table immediately before. These are relatively wide intervals of prediction. As a result, no matter the accuracy of the model, there is still enough overlap of the Democratic and Republican intervals that the party holding a majority of seats could flip.
 
 # Final Prediction and Conclusion
 
-Based on all of the investigations I have just completed regarding the accuracy of my models, I've decided to use the models based on all of the historical election data, not just midterms. Not only does that model have a smaller interval of prediction but it performed better on the out-of-sample fit test. While the adjusted r-squareds were also higher, it was by such a small amount (0.003) that it seems insignificant. They also had marginally smaller residual standard errors. Overall, I believe that the predictions that have more training data are more reliable. Using the fitted values, I predict that *the Democratic party will win 205 seats and the Republican party will win 225 seats in the 2022 midterms.* 
+Based on all of the investigations I have just completed regarding the accuracy of my models, I have decided to use the models based on all of the historical election data, not just midterms. Not only does that model have a smaller interval of prediction but it performed better on the out-of-sample fit test. While the adjusted r-squareds were also higher, it was by such a small amount (0.003) that it seems insignificant. They also had marginally smaller residual standard errors. Overall, I believe that the predictions that have more training data are more reliable. 
+
+Because I used separate models for Democrats and Republicans, their predicted seat totals do not add up to 435. In order to reach that number for our class predictions, I will rely on the Republican models and calculate Democratic seat share using simple subtraction, leading to *a result of 210 seats for the Democrats and 225  seats for the Republicans.* When using the fitted values from both my Republican and Democrat models, however, I predict that *the Democratic party will win 205 seats and the Republican party will win 225 seats in the 2022 midterms.* 
 
 Just because my final predictions are in doesn't mean that this is my last blog post. I'll be back for a reflection on the election results and the quality of my model soon!
