@@ -1,0 +1,392 @@
+---
+title: Election Reflection
+author: Meredith Zielonka
+date: '2022-11-22'
+slug: []
+categories: []
+tags: []
+---
+
+*This blog is part of a series related to Gov 1347: Election Analytics, a course at Harvard University taught by Professor Ryan D. Enos.*
+
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(janitor)
+library(stargazer)
+library(usmap)
+library(ggmap)
+library(rmapshaper)
+library(blogdown)
+library(tinytex)
+library(donnermap)
+library(dotenv)
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+```
+
+```{r data}
+preddata <- read.csv("ElectionData.csv")
+
+error <- preddata %>% 
+  mutate(Error = Republican - 222) %>% 
+  select("Model", "Error")
+```
+
+# Introduction
+
+This election cycle led to some expectations being met and some surprises. A "red wave," somewhat like the one predicted in my model, was unsuccessful, however the Republicans still won the House. Some safe House districts, like Colorado-3 with incumbent Lauren Boebert, became extremely tight races and Republicans won in places like New York that no Democrat expected to lose. Additionally, despite recent trends of the popular vote leaning Democratic while the seat share remains split, this election saw the voteshare/seatshare curve lie remarkably even.
+
+# Model Recap
+
+To review, I started building my model with historical data of nationwide vote and seat share. I also used a dataset of generic ballot results. I then filtered that data down to only polls after September 1st in order to get results closer to the election. I joined the historical data and the generic ballot data, and created variables for the generic ballot differences. Finally, I joined in GDP data and created two sets of data, one of all election years and one of only midterm election years. I ended up with four total models, two predicting based on midterm years and two based on all election years, one each for Democrats and one for Republicans. Each model predicted the seat share outcome for the party it used as a basis, and calculated the results for the other party using simple subtraction. Below is printed the predictions of each of my models compared to the actual data. 
+
+I used the R_all model to make my final prediction of 225 Republican seats and 210 Democratic seats. The final 2022 result has yet to be called due to five undecided races, but at the time of this post, the New York Times estimates 222 Republican seats and 213 Democratic seats based on the margins of the uncalled races. Given that most of the votes have been counted at this point, these margins are unlikely to change significantly.
+
+My final formula was this: lm(R_seats ~  repballotdif + presparty + R_seats_before + GDP_growth_pct, data = train_lm)
+
+```{r}
+print(preddata)
+```
+
+# Accuracy
+
+```{r}
+print(error)
+```
+
+As you can see from the chart above, the R_all model had the lowest error of the four, proving that I chose the right model for my final prediction. In order to evaluate the accuracy of my model over time, I performed out-of-sample fit tests to analyze the difference between the predicted values and the actual values. Although my model draws on historical data back to 1944, I only performed the tests on data from the years 1984 through 2022, limiting it to the more recent half of my data set in order to see more modern trends.
+
+```{r}
+hist <- read.csv("data.csv")
+hist$R_seats[37] = 222
+hist$D_seats[37] = 213
+hist$winner_party[37] = "R"
+
+hist <- hist %>% mutate(presyear = case_when(
+  year == 1984 ~ 1,
+  year == 1988 ~ 1,
+  year == 1992 ~ 1,
+  year == 1996 ~ 1,
+  year == 2000 ~ 1,
+  year == 2004 ~ 1,
+  year == 2008 ~ 1,
+  year == 2012 ~ 1,
+  year == 2016 ~ 1,
+  year == 2020 ~ 1,
+  year == 1986 ~ 0,
+  year == 1990 ~ 0,
+  year == 1994 ~ 0,
+  year == 1998 ~ 0,
+  year == 2002 ~ 0,
+  year == 2006 ~ 0,
+  year == 2010 ~ 0,
+  year == 2014 ~ 0,
+  year == 2018 ~ 0,
+  year == 2022 ~ 0,
+))
+
+hist_midterm <- hist %>% 
+  filter(year != 1944) %>% 
+  filter(year != 1948) %>% 
+  filter(year != 1952) %>% 
+  filter(year != 1956) %>% 
+  filter(year != 1960) %>% 
+  filter(year != 1964) %>%
+  filter(year != 1968) %>%
+  filter(year != 1972) %>%
+  filter(year != 1976) %>%
+  filter(year != 1980) %>%
+  filter(year != 1984) %>%
+  filter(year != 1988) %>%
+  filter(year != 1992) %>%
+  filter(year != 1996) %>%
+  filter(year != 2000) %>%
+  filter(year != 2004) %>%
+  filter(year != 2008) %>%
+  filter(year != 2012) %>%
+  filter(year != 2016) %>%
+  filter(year != 2020)
+
+# all R
+outsamp_mod1984 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1984,])
+outsamp_pred1984 <- predict(outsamp_mod1984, 
+                        hist[hist$year == 1984,])
+outsamp_true1984 <- hist$R_seats[hist$year == 1984] 
+outsamp_dif1984 <- outsamp_pred1984 - outsamp_true1984
+
+# all R
+outsamp_mod1986 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1986,])
+outsamp_pred1986 <- predict(outsamp_mod1986, 
+                        hist[hist$year == 1986,])
+outsamp_true1986 <- hist$R_seats[hist$year == 1986] 
+outsamp_dif1986 <- outsamp_pred1986 - outsamp_true1986
+
+# all R
+outsamp_mod1988 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1988,])
+outsamp_pred1988 <- predict(outsamp_mod1988, 
+                        hist[hist$year == 1988,])
+outsamp_true1988 <- hist$R_seats[hist$year == 1988] 
+outsamp_dif1988 <- outsamp_pred1988 - outsamp_true1988
+
+# all R
+outsamp_mod1990 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1990,])
+outsamp_pred1990 <- predict(outsamp_mod1990, 
+                        hist[hist$year == 1990,])
+outsamp_true1990 <- hist$R_seats[hist$year == 1990] 
+outsamp_dif1990 <- outsamp_pred1990 - outsamp_true1990
+
+# all R
+outsamp_mod1992 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1992,])
+outsamp_pred1992 <- predict(outsamp_mod1992, 
+                        hist[hist$year == 1992,])
+outsamp_true1992 <- hist$R_seats[hist$year == 1992] 
+outsamp_dif1992 <- outsamp_pred1992 - outsamp_true1992
+
+# all R
+outsamp_mod1994 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1994,])
+outsamp_pred1994 <- predict(outsamp_mod1994, 
+                        hist[hist$year == 1994,])
+outsamp_true1994 <- hist$R_seats[hist$year == 1994] 
+outsamp_dif1994 <- outsamp_pred1994 - outsamp_true1994
+# all R
+outsamp_mod1996 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1996,])
+outsamp_pred1996 <- predict(outsamp_mod1996, 
+                        hist[hist$year == 1996,])
+outsamp_true1996 <- hist$R_seats[hist$year == 1996] 
+outsamp_dif1996 <- outsamp_pred1996 - outsamp_true1996
+
+# all R
+outsamp_mod1998 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 1998,])
+outsamp_pred1998 <- predict(outsamp_mod1998, 
+                        hist[hist$year == 1998,])
+outsamp_true1998 <- hist$R_seats[hist$year == 1998] 
+outsamp_dif1998 <- outsamp_pred1998 - outsamp_true1998
+
+# all R
+outsamp_mod2000 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2000,])
+outsamp_pred2000 <- predict(outsamp_mod2000, 
+                        hist[hist$year == 2000,])
+outsamp_true2000 <- hist$R_seats[hist$year == 2000] 
+outsamp_dif2000 <- outsamp_pred2000 - outsamp_true2000
+
+# all R
+outsamp_mod2002 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2002,])
+outsamp_pred2002 <- predict(outsamp_mod2002, 
+                        hist[hist$year == 2002,])
+outsamp_true2002 <- hist$R_seats[hist$year == 2002] 
+outsamp_dif2002 <- outsamp_pred2002 - outsamp_true2002
+
+# all R
+outsamp_mod2004 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2004,])
+outsamp_pred2004 <- predict(outsamp_mod2004, 
+                        hist[hist$year == 2004,])
+outsamp_true2004 <- hist$R_seats[hist$year == 2004] 
+outsamp_dif2004 <- outsamp_pred2004 - outsamp_true2004
+
+# all R
+outsamp_mod2006 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2006,])
+outsamp_pred2006 <- predict(outsamp_mod2006, 
+                        hist[hist$year == 2006,])
+outsamp_true2006 <- hist$R_seats[hist$year == 2006] 
+outsamp_dif2006 <- outsamp_pred2006 - outsamp_true2006
+
+# all R
+outsamp_mod2008 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2008,])
+outsamp_pred2008 <- predict(outsamp_mod2008, 
+                        hist[hist$year == 2008,])
+outsamp_true2008 <- hist$R_seats[hist$year == 2008] 
+outsamp_dif2008 <- outsamp_pred2008 - outsamp_true2008
+
+# all R
+outsamp_mod2010 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2010,])
+outsamp_pred2010 <- predict(outsamp_mod2010, 
+                        hist[hist$year == 2010,])
+outsamp_true2010 <- hist$R_seats[hist$year == 2010] 
+outsamp_dif2010 <- outsamp_pred2010 - outsamp_true2010
+
+# all R
+outsamp_mod2012 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2012,])
+outsamp_pred2012 <- predict(outsamp_mod2012, 
+                        hist[hist$year == 2012,])
+outsamp_true2012 <- hist$R_seats[hist$year == 2012] 
+outsamp_dif2012 <- outsamp_pred2012 - outsamp_true2012
+
+# all R
+outsamp_mod2014 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2014,])
+outsamp_pred2014 <- predict(outsamp_mod2014, 
+                        hist[hist$year == 2014,])
+outsamp_true2014 <- hist$R_seats[hist$year == 2014] 
+outsamp_dif2014 <- outsamp_pred2014 - outsamp_true2014
+
+# all R 2
+outsamp_mod2016 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2016,])
+outsamp_pred2016 <- predict(outsamp_mod2016, 
+                        hist[hist$year == 2016,])
+outsamp_true2016 <- hist$R_seats[hist$year == 2016] 
+outsamp_dif2016 <- outsamp_pred2016 - outsamp_true2016
+
+# all R 3
+outsamp_mod2018 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2018,])
+outsamp_pred2018 <- predict(outsamp_mod2018, 
+                        hist[hist$year == 2018,])
+outsamp_true2018 <- hist$R_seats[hist$year == 2018] 
+outsamp_dif2018 <- outsamp_pred2018 - outsamp_true2018
+
+# all R 4
+outsamp_mod2020 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2020,])
+outsamp_pred2020 <- predict(outsamp_mod2020, 
+                        hist[hist$year == 2020,])
+outsamp_true2020 <- hist$R_seats[hist$year == 2020] 
+outsamp_dif2020 <- outsamp_pred2020 - outsamp_true2020
+
+# all R 5
+outsamp_mod2022 <- lm(R_seats ~  demballotdif + presparty + R_seats_before + GDP_growth_pct, 
+                    hist[hist$year != 2022,])
+outsamp_pred2022 <- predict(outsamp_mod2022, 
+                        hist[hist$year == 2022,])
+outsamp_true2022 <- hist$R_seats[hist$year == 2022] 
+outsamp_dif2022 <- outsamp_pred2022 - outsamp_true2022
+
+errortime <- data.frame("year" = numeric(),    # Create empty data frame
+                    "pred" = numeric(),
+                    "actual" = numeric(),
+                    "difference" = numeric(),
+                    "presyear" = numeric(),
+                    stringsAsFactors = FALSE)
+
+errortime[1, ] <- list(1984, outsamp_pred1984, outsamp_true1984, outsamp_dif1984, 1)
+errortime[2, ] <- list(1986, outsamp_pred1986, outsamp_true1986, outsamp_dif1986, 0)
+errortime[3, ] <- list(1988, outsamp_pred1988, outsamp_true1988, outsamp_dif1988, 1)
+errortime[4, ] <- list(1990, outsamp_pred1990, outsamp_true1990, outsamp_dif1990, 0)
+errortime[5, ] <- list(1992, outsamp_pred1992, outsamp_true1992, outsamp_dif1992, 1)
+errortime[6, ] <- list(1994, outsamp_pred1994, outsamp_true1994, outsamp_dif1994, 0)
+errortime[7, ] <- list(1996, outsamp_pred1996, outsamp_true1996, outsamp_dif1996, 1)
+errortime[8, ] <- list(1998, outsamp_pred1998, outsamp_true1998, outsamp_dif1998, 0)
+errortime[9, ] <- list(2000, outsamp_pred2000, outsamp_true2000, outsamp_dif2000, 1)
+errortime[10, ] <- list(2002, outsamp_pred2002, outsamp_true2002, outsamp_dif2002, 0)
+errortime[11, ] <- list(2004, outsamp_pred2004, outsamp_true2004, outsamp_dif2004, 1)
+errortime[12, ] <- list(2006, outsamp_pred2006, outsamp_true2006, outsamp_dif2006, 0)
+errortime[13, ] <- list(2008, outsamp_pred2008, outsamp_true2008, outsamp_dif2008, 1)
+errortime[14, ] <- list(2010, outsamp_pred2010, outsamp_true2010, outsamp_dif2010, 0)
+errortime[15, ] <- list(2012, outsamp_pred2012, outsamp_true2012, outsamp_dif2012, 1)
+errortime[16, ] <- list(2014, outsamp_pred2014, outsamp_true2014, outsamp_dif2014, 0)
+errortime[17, ] <- list(2016, outsamp_pred2016, outsamp_true2016, outsamp_dif2016, 1)
+errortime[18, ] <- list(2018, outsamp_pred2018, outsamp_true2018, outsamp_dif2018, 0)
+errortime[19, ] <- list(2020, outsamp_pred2020, outsamp_true2020, outsamp_dif2020, 1)
+errortime[20, ] <- list(2022, outsamp_pred2022, outsamp_true2022, outsamp_dif2022, 0)
+
+
+errortime$pred <- as.numeric(errortime$pred)
+errortime$actual <- as.numeric(errortime$actual)
+errortime$difference <- as.numeric(errortime$difference)
+
+errortime <- errortime %>% 
+  mutate(absdif = abs(difference))
+
+meanerror <- mean(errortime$absdif)
+meanerror
+
+meanerrortrim <- mean(errortime$absdif, trim = 0.3)
+meanerrortrim
+
+medianerror <- median(errortime$absdif)
+medianerror
+
+plot(errortime$year, errortime$pred, type="b", col="#669933", lwd=2, pch=15, xlab="Time", ylab="Seat Share", ylim=range(150, 275))
+  lines(errortime$year, errortime$actual, type="b", col="#CC0000", lwd=2, pch=19)
+  title("Republican Seat Share Model Accuracy Over Time")
+  legend(1983,270,c("Predicted","Actual"), lwd=c(2,2), col=c("#669933","#CC0000"), pch=c(15,19), y.intersp = 1.5)
+  abline(h = 218)
+  text(1985, 223, "218", cex=1)
+  
+plot(errortime$year, errortime$absdif, type="b", col=ifelse(errortime$presyear == 1,'hotpink2','purple'), lwd=2, pch=15, xlab="Time", ylab="Seat Share Difference", ylim=range(0, 30))
+title("Republican Seat Share Error Over Time")
+abline(h =  9.681184)
+text(2012, 10.5, "Median", cex=.75)
+legend(2012,30,c("Presidential","Midterm"), lwd=c(2,2), col=c('hotpink2','purple'), pch=c(15), y.intersp = 1.5)
+
+```
+The mean of my errors was 9.27 seats, and when the 3 outliers on either end of the dataset were trimmed, it was 8.82. The median of the whole set was 8.19 seats. These are all pretty large median errors on their own, and when races are very close, indicate a serious insecurity about who could win the House. However, this margin only accounts for 2% of all House seats, meaning that the majority of seats can be called with a pretty high degree of certainty. These averages also fall very closely to the in-sample and out-of-sample errors that I received during my initial testing, showing that the 2022 result was not drastically different (and in fact was much better than those means).
+
+After analyzing the averages, I plotted the predicted and actual values for 1984 through 2022 in order to visualize their errors. I also plotted a line at 218 seats, the number required to gain a House majority. This shows a clear pattern, that the model only incorrectly predicted the winner of the House in three years, all before 2004. In every other year, the predicted value falls on the side of the winner. That means that despite the seat error, the model is still accurate in the most important question of the election.
+
+I also graphed the seat share error separately. I discovered that until 2010, my model predicted with relatively low errors in presidential election years and high errors in midterm years (with one exception in 1998). Starting in 2008, the pattern shifts slightly, with midterm election year errors becoming much lower. In the four presidential elections since 2008, two (2008 and 2016) had large errors and two (2012 and 2020) had small errors.
+
+# Hypotheses and Solutions
+
+I used four dependent variables in my model: generic ballot lead or deficit, president's party, Republican seats before the election and GDP growth percent. President's party is expected to positively correlate with the opposite party, i.e. when the president is a Democrat, Democrats are likely to lose seats, especially in midterm years. Generic ballot lead or deficit communicates the margin by which the selected party is expected to win or lose according to polls. Seats before the election in collaboration with the generic ballot communicates how well the model thinks that the party will perform compared to the previous year. All of those variables seem to work in communication with each other, whereas GDP is an isolated actor. 
+
+## Error Frequency
+
+```{r}
+# set up cut-off values 
+breaks <- c(0,5,10,15,20,25)
+# specify interval/bin labels
+tags <- c("[0-5)","[5-10)", "[10-15)", "[15-20)", "[20-25)")
+# bucketing values into bins
+group_tags <- cut(errortime$absdif, 
+                  breaks=breaks, 
+                  include.lowest=TRUE, 
+                  right=FALSE, 
+                  labels=tags)
+# inspect bins
+summary(group_tags)
+
+ggplot(data = as_tibble(group_tags), mapping = aes(x=value)) + 
+  geom_bar(fill="lightblue",color="white",alpha=0.7) + 
+  labs(x='Error', y='Frequency') +
+  theme_minimal() +
+  ggtitle("Frequency of Errors Since 1984")
+
+summary(errortime)
+```
+The graph above plots the errors between my predictive model and the actual results for the last fifteen election cycles. 55% of predictions in the fifteen year period had errors between 5 and 10 and 88% between 5 and 15. Since my model's error for this election was only three, it shows that the model was much more accurate this year than it usually is. In the next few paragraphs, I will explore reasons how the model error as a whole could be reduced but first, let's discuss why the 2022 error was so low compared to other years.
+
+I predicted that Republicans would win 225 seats and Democrats would win 210, but in reality, Republicans won 222 and Democrats won 213. My prediction was in line with many [pundits who were speculating that we would see a "Red Wave"](https://www.politico.com/news/2022/11/09/2022-election-results-analysis-and-takeaways-00065878) in which Republicans won significantly more. However, the wave never materialized. Politico theorizes that one reason for the failure of the Red Wave is that Trump-aligned candidates performed much worse than expected. Since my model was a national-level prediction, the generic ballot simply measured the percentage of voters who preferred each party and did not account for candidate personalities or likability.
+
+## GDP
+
+When looking for inspiration for my model, I referenced [Alan Abramowitz's 2018 paper in the American Political Science Association review](https://drive.google.com/drive/u/0/folders/1zCCwkXszMqVsm3U1T1_s6n6ffyB8Jc5C) which created a model with high statistical significance. He, however, did not include economic indicators, which perhaps should have encouraged me to more thoroughly evaluate its impact.
+
+In my initial tests with GDP at the beginning of the semester, there was a mediocre correlation. When looking at economic data, my RDI correlation was stronger than my GDP correlation, and the correlation with vote share was stronger than the correlation with seat share. Given that the r-squared was so mediocre, GDP does not seem like a worthwhile variable to include in the model. I left it in the model for my final prediction because I was relatively confident that economic impact played with voters psychologically enough to matter in the model, but, looking back on the situation, I believe it simply raised my r-squared, as each additional variable is known to do. 
+
+Immediately before the election, [The Economist published an article](https://www.economist.com/graphic-detail/2022/10/27/strong-gdp-figures-will-not-help-the-democrats-in-the-midterms) examining the possible impact of GDP on the results. They evaluated how, despite increasing GDP numbers, their basis is false and important indicators such as consumer spending and housing prices are not suggesting good news. Rather, the positive GDP was made up of a decline in the trade deficit. This backs up my theory that GDP is not the best indicator of how voters will respond to economic change at the polls.
+
+In order to evaluate whether the presence or absence of GDP significantly impacted my prediction results, I would first modify my model to remove GDP, and then I would take the same steps that I took in evaluating my original model. I would evaluate using in-sample and out-of-sample testing to determine the average errors and I would examine the 2022 prediction error. I would also experiment using RDI data and consumer sentiment index data instead of GDP data to see whether that yielded different results, particularly since data like the latter could represent voter thinking more accurately than just per capita income.
+
+## President's Party
+
+President's party is another unusual variable. The second graph above suggests a correlation between presidential election years and prediction error. This introduces the possibility that the president's party variable inaccurately shifts predictions, though I am not sure to what extent. In order to evaluate this, I would play with different models with the presence and absence of the variable, and possibly create new variables such as whether the president's party is the same as the House incumbent party.
+
+# Future Thinking
+
+For future models, there are a number of changes that I would like to explore which were either beyond my coding abilities this semester or required more time than I could devote. 
+
+First, I definitely would want to change GDP to a variable more grounded in voter experience, like consumer sentiment data. I believe that this would make GDP more reflective of individual voter experience. Additionally, I would like to expand my national-level prediction into a district-level prediction, using district-level historical data and generic ballot results. I think that this would allow me greater nuance in seeing whether there are patterns of inaccuracies in specific districts that need refinement. Given historical trends of regions that are consistently Democratic or Republican, this would allow me to narrow the search for inaccuracy down to swing districts. I think this would also end up being a more interesting analysis overall.
+
+Ultimately, this semester and the model I built was an extremely informative way to be introduced to the concept of Election Analytics and I thoroughly enjoyed my time. I feel like I have grown a lot in my abilities throughout the last semester and I will most certainly think of political statistics in new ways going forward. I hope to explore similar concepts in the future.
