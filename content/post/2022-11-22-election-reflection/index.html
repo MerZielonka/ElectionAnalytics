@@ -35,9 +35,6 @@ tags: []
 ## 4  R_mid   -19
 ## 5 Actual     0</code></pre>
 <p>As you can see from the chart above, the R_all model had the lowest error of the four, proving that I chose the right model for my final prediction. In order to evaluate the accuracy of my model over time, I performed out-of-sample fit tests to analyze the difference between the predicted values and the actual values. Although my model draws on historical data back to 1944, I only performed the tests on data from the years 1984 through 2022, limiting it to the more recent half of my data set in order to see more modern trends.</p>
-<pre><code>## [1] 9.269537</code></pre>
-<pre><code>## [1] 8.815297</code></pre>
-<pre><code>## [1] 8.188729</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-2.png" width="672" />
 The mean of my errors was 9.27 seats, and when the 3 outliers on either end of the dataset were trimmed, it was 8.82. The median of the whole set was 8.19 seats. These are all pretty large median errors on their own, and when races are very close, indicate a serious insecurity about who could win the House. However, this margin only accounts for 2% of all House seats, meaning that the majority of seats can be called with a pretty high degree of certainty. These averages also fall very closely to the in-sample and out-of-sample errors that I received during my initial testing, showing that the 2022 result was not drastically different (and in fact was much better than those means).</p>
 <p>After analyzing the averages, I plotted the predicted and actual values for 1984 through 2022 in order to visualize their errors. I also plotted a line at 218 seats, the number required to gain a House majority. This shows a clear pattern, that the model only incorrectly predicted the winner of the House in three years, all before 2004. In every other year, the predicted value falls on the side of the winner. That means that despite the seat error, the model is still accurate in the most important question of the election.</p>
@@ -50,22 +47,8 @@ The mean of my errors was 9.27 seats, and when the 3 outliers on either end of t
 <h2>Error Frequency</h2>
 <pre><code>##   [0-5)  [5-10) [10-15) [15-20) [20-25) 
 ##       5       7       5       2       1</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<pre><code>##       year           pred           actual        difference      
-##  Min.   :1984   Min.   :175.2   Min.   :167.0   Min.   :-16.1403  
-##  1st Qu.:1994   1st Qu.:189.7   1st Qu.:181.0   1st Qu.: -7.8899  
-##  Median :2003   Median :213.4   Median :221.5   Median :  2.6865  
-##  Mean   :2003   Mean   :209.7   Mean   :209.1   Mean   :  0.6482  
-##  3rd Qu.:2012   3rd Qu.:227.4   3rd Qu.:230.5   3rd Qu.:  8.2243  
-##  Max.   :2022   Max.   :240.6   Max.   :247.0   Max.   : 22.7881  
-##     presyear       absdif      
-##  Min.   :0.0   Min.   : 0.223  
-##  1st Qu.:0.0   1st Qu.: 6.045  
-##  Median :0.5   Median : 8.189  
-##  Mean   :0.5   Mean   : 9.270  
-##  3rd Qu.:1.0   3rd Qu.:12.881  
-##  Max.   :1.0   Max.   :22.788</code></pre>
-<p>The graph above plots the errors between my predictive model and the actual results for the last fifteen election cycles. 55% of predictions in the fifteen year period had errors between 5 and 10 and 88% between 5 and 15. Since my model’s error for this election was only three, it shows that the model was much more accurate this year than it usually is. In the next few paragraphs, I will explore reasons how the model error as a whole could be reduced but first, let’s discuss why the 2022 error was so low compared to other years.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+The graph above plots the errors between my predictive model and the actual results for the last twenty election cycles. 25% of predictions in the period had errors between 0 and 5, 35% had errors between 5 and 10, and 60% between 5 and 15. Since my model’s error for this election was only three, it shows that the model was somewhat more accurate this year than it usually is. In the next few paragraphs, I will explore reasons how the model error as a whole could be reduced but first, let’s discuss why the 2022 error was so low compared to other years.</p>
 <p>I predicted that Republicans would win 225 seats and Democrats would win 210, but in reality, Republicans won 222 and Democrats won 213. My prediction was in line with many <a href="https://www.politico.com/news/2022/11/09/2022-election-results-analysis-and-takeaways-00065878">pundits who were speculating that we would see a “Red Wave”</a> in which Republicans won significantly more. However, the wave never materialized. Politico theorizes that one reason for the failure of the Red Wave is that Trump-aligned candidates performed much worse than expected. Since my model was a national-level prediction, the generic ballot simply measured the percentage of voters who preferred each party and did not account for candidate personalities or likability.</p>
 </div>
 <div id="gdp" class="section level2">
@@ -80,8 +63,8 @@ The mean of my errors was 9.27 seats, and when the 3 outliers on either end of t
 <p>President’s party is another unusual variable. The second graph above suggests a correlation between presidential election years and prediction error. This introduces the possibility that the president’s party variable inaccurately shifts predictions, though I am not sure to what extent. In order to evaluate this, I would play with different models with the presence and absence of the variable, and possibly create new variables such as whether the president’s party is the same as the House incumbent party.</p>
 </div>
 </div>
-<div id="future-thinking" class="section level1">
-<h1>Future Thinking</h1>
+<div id="thinking-about-the-future" class="section level1">
+<h1>Thinking About The Future</h1>
 <p>For future models, there are a number of changes that I would like to explore which were either beyond my coding abilities this semester or required more time than I could devote.</p>
 <p>First, I definitely would want to change GDP to a variable more grounded in voter experience, like consumer sentiment data. I believe that this would make GDP more reflective of individual voter experience. Additionally, I would like to expand my national-level prediction into a district-level prediction, using district-level historical data and generic ballot results. I think that this would allow me greater nuance in seeing whether there are patterns of inaccuracies in specific districts that need refinement. Given historical trends of regions that are consistently Democratic or Republican, this would allow me to narrow the search for inaccuracy down to swing districts. I think this would also end up being a more interesting analysis overall.</p>
 <p>Ultimately, this semester and the model I built was an extremely informative way to be introduced to the concept of Election Analytics and I thoroughly enjoyed my time. I feel like I have grown a lot in my abilities throughout the last semester and I will most certainly think of political statistics in new ways going forward. I hope to explore similar concepts in the future.</p>

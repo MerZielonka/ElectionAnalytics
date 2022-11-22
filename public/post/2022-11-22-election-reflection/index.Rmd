@@ -309,13 +309,13 @@ errortime <- errortime %>%
   mutate(absdif = abs(difference))
 
 meanerror <- mean(errortime$absdif)
-meanerror
+# meanerror
 
 meanerrortrim <- mean(errortime$absdif, trim = 0.3)
-meanerrortrim
+# meanerrortrim
 
 medianerror <- median(errortime$absdif)
-medianerror
+# medianerror
 
 plot(errortime$year, errortime$pred, type="b", col="#669933", lwd=2, pch=15, xlab="Time", ylab="Seat Share", ylim=range(150, 275))
   lines(errortime$year, errortime$actual, type="b", col="#CC0000", lwd=2, pch=19)
@@ -362,10 +362,8 @@ ggplot(data = as_tibble(group_tags), mapping = aes(x=value)) +
   labs(x='Error', y='Frequency') +
   theme_minimal() +
   ggtitle("Frequency of Errors Since 1984")
-
-summary(errortime)
 ```
-The graph above plots the errors between my predictive model and the actual results for the last fifteen election cycles. 55% of predictions in the fifteen year period had errors between 5 and 10 and 88% between 5 and 15. Since my model's error for this election was only three, it shows that the model was much more accurate this year than it usually is. In the next few paragraphs, I will explore reasons how the model error as a whole could be reduced but first, let's discuss why the 2022 error was so low compared to other years.
+The graph above plots the errors between my predictive model and the actual results for the last twenty election cycles. 25% of predictions in the period had errors between 0 and 5, 35% had errors between 5 and 10, and 60% between 5 and 15. Since my model's error for this election was only three, it shows that the model was somewhat more accurate this year than it usually is. In the next few paragraphs, I will explore reasons how the model error as a whole could be reduced but first, let's discuss why the 2022 error was so low compared to other years.
 
 I predicted that Republicans would win 225 seats and Democrats would win 210, but in reality, Republicans won 222 and Democrats won 213. My prediction was in line with many [pundits who were speculating that we would see a "Red Wave"](https://www.politico.com/news/2022/11/09/2022-election-results-analysis-and-takeaways-00065878) in which Republicans won significantly more. However, the wave never materialized. Politico theorizes that one reason for the failure of the Red Wave is that Trump-aligned candidates performed much worse than expected. Since my model was a national-level prediction, the generic ballot simply measured the percentage of voters who preferred each party and did not account for candidate personalities or likability.
 
@@ -383,7 +381,7 @@ In order to evaluate whether the presence or absence of GDP significantly impact
 
 President's party is another unusual variable. The second graph above suggests a correlation between presidential election years and prediction error. This introduces the possibility that the president's party variable inaccurately shifts predictions, though I am not sure to what extent. In order to evaluate this, I would play with different models with the presence and absence of the variable, and possibly create new variables such as whether the president's party is the same as the House incumbent party.
 
-# Future Thinking
+# Thinking About The Future
 
 For future models, there are a number of changes that I would like to explore which were either beyond my coding abilities this semester or required more time than I could devote. 
 
