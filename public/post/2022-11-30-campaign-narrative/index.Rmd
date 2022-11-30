@@ -1,0 +1,44 @@
+---
+title: Campaign Narrative
+author: Meredith Zielonka
+date: '2022-11-30'
+slug: []
+categories: []
+tags: []
+---
+
+```{r setup}
+library(blogdown)
+```
+
+# History of the District
+
+New Hampshire’s 2nd District is currently represented by Ann Kuster McLane, a five-term incumbent who was just elected to a sixth term. She represents roughly 680,000 people, a population that is [overwhelmingly white (88.1%)](https://ballotpedia.org/New_Hampshire%27s_2nd_Congressional_District) with a high high-school graduation rate but a college graduation rate of only 37%, compared to 42% of Americans. The median household income is $77,432, compared to the national median of [$70,784](https://www.census.gov/library/publications/2022/demo/p60-276.html). 
+
+Ballotpedia along with other news outlets named NH-2 a battleground race, despite its recent history of Democratic wins. Ann McLane Kuster represented the Democrats as incumbent, unchallenged in her primary. 
+
+Robert “Bob” Burns, the former treasurer of Hillsborough County, ran against a number of candidates in the Republican primary and won by roughly 1700 votes with 32.9% of the vote compared to the runner-up’s 30.2%. Burns was helped considerably by a [Democratic PAC called Democrats Serve](https://www.nytimes.com/2022/09/14/us/politics/robert-burns-nh-house-primary.html) who spent more than $90,000 on the race. This was part of a new strategy by Democrats to get more fringe Republicans to win primaries with the view that they would be more likely to lose in the general election, and it came true in this race. Burns’ closest competitor, George Hansel, was the Mayor of Keene, NH, and had gained the endorsement of the Republican Governor, Chris Sununu. He was generally considered to be moderate, more similar to other Republicans who usually win in New England. In contrast, Bob Burns aligned himself with former President Trump. While acknowledging that President Biden won the 2020 election, he was skeptical about the legitimacy of other races in the same year. 
+
+This district has a history of significant political spending. Since 2006, Democrats have consistently [outfundraised Republicans](https://www.opensecrets.org/races/summary?cycle=2016&id=NH02&spec=N) with varying election outcomes. Since 2016, Republican spending and outside spending dropped to practically zero. In 2022, this record was broken. Bob Burns raised around $350,000 to Ann Kuster’s $4 million and $1.76 million was spent by outside groups on attacks against Burns. This election demonstrated a huge imbalance in spending between the parties.
+
+# Forecasted Outcomes
+
+There were not many polls in NH-2, with [538 reporting only seven polls](https://projects.fivethirtyeight.com/polls/house/2022/new-hampshire/2/) between the primary and the general election. Of those polls, six showed Kuster with a significant lead. The last two polls before the election, conducted by Saint Anselm College and the University of New Hampshire between October 28-29 and November 2-6 respectively, both put Kuster at +8 points. The earlier Saint Anselm poll predicted 50% for Kuster and 42% for Burns, while the later UNH poll put Kuster at 53% and Burns at 45%. The [actual result of the race] (https://www.nytimes.com/interactive/2022/11/08/us/elections/results-new-hampshire-us-house-district-2.html) saw Ann McLane Kuster win 55.9% of the vote and Burns win 44.1%. Compared to the UNH poll in the days immediately preceding the election, Kuster won 2.9% more and Burns won -0.9% less than predicted. Compared to the average across the seven polls, Kuster was up 5.9% and Burns was up 2.67%. In all cases, Kuster won over Burns. 
+
+# Campaigns in Practice
+
+[Bob Burns](https://www.burns4nh.com/on-the-issues) is a gun-toting, pro-life, pro-decentralized government, pro-border wall, anti-CRT, anti-health mandates Republican. His ideology aligns relatively closely with former President Trump and he uses a lot of similar language to President Trump, focusing on security against outsiders and fighting woke ideology. He focuses especially on inflation and creating blue-collar jobs in New Hampshire. 
+
+[Ann Kuster McLane](https://www.kusterforcongress.com/the-issues1) is a classic moderate Democrat, raised by politically diverse parents and Dartmouth-educated. She focuses on issues such as women's rights, healthcare, bipartisanship, euqality and democracy.
+
+Burns sought more media attention than Kuster, making appearances consistently on the local broadcasting service, WMUR, and Burns was even featured in the [New York Times](https://www.nytimes.com/2022/09/14/us/politics/robert-burns-nh-house-primary.html). Kuster mostly appeared in the news when she engaged in a debate with Burns. This aligns with Burns’ need to make his name known while Kuster is established already in the state. The air war saw the bulk of the spending described earlier, with much of the outside spending happening on attack ads in the Republican primary.
+
+# Campaign Theory
+
+[Lynn Vavreck](https://muse-jhu-edu.ezp-prod1.hul.harvard.edu/book/36264) created a theory about how a well-run campaign functions and wins. The theory states that in a good economy, the incumbent party should focus mainly on connecting the economy to their actions and the challenger party should focus mostly on an issue in which public opinion favors them. In a bad economy, the roles reverse, and the incumbent must focus mostly on a separate issue and the challenger must focus on the economy. This trend is reflected in the race for New Hampshire’s 2nd District, where Burns repeatedly discussed aspects of the economy such as increasing jobs and combating inflation. Kuster, on the other hand, emphasized issues like [abortion](https://www.nhpr.org/nh-news/2022-11-05/kuster-burns-inflation-abortion-nh-debate-for-2nd-cd) and democracy where public opinion overwhelmingly agreed with her..
+
+Another trend visible in this election was about the [electability of Trump-aligned candidates](https://www.politico.com/news/2022/11/09/2022-election-results-analysis-and-takeaways-00065878). Across the country, Trump Republicans underperformed compared to other Republicans. Trump Republicans are often more aggressive in delivering their messages and put their personal characteristics first. Whether their underperformance can be attributed to ideology or presentation of views is still a question but in this battle, Kuster prevailed.
+
+# Conclusion
+
+This district's 2022 election did not see many surprises or deviation from the polls, but it demonstrates trends with wider applicability and legitimizes the trends of some upsets elsewhere around the country. 
