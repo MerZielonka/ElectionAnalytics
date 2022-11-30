@@ -7,7 +7,7 @@ categories: []
 tags: []
 ---
 
-```{r setup}
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 library(blogdown)
 ```
 
